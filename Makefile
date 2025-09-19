@@ -22,7 +22,7 @@ RES_OUT = $(patsubst ${RES}/%,${RES_DIR}/%,${RES_SRC})
 
 SHDR_AIR_OUT = $(patsubst ${SHDR_SRC}/%.metal,${OBJ_DIR}/%.air,${SHDR_METAL})
 
-override LIB += m png pthread sdl3
+override LIB += m pthread sdl3
 override FRAMEWORK += Foundation Metal
 override LIB_PATH += /usr/local/lib
 override INCL_PATH += src /usr/local/include
