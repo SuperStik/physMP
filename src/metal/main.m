@@ -124,7 +124,7 @@ static void *render(void *l) {
 	MTLRenderPassColorAttachmentDescriptor *color = rpd.colorAttachments[0];
 	color.loadAction = MTLLoadActionClear;
 	color.storeAction = MTLStoreActionDontCare;
-	color.clearColor = MTLClearColorMake(1.0, 0.8, 0.2, 1.0);
+	color.clearColor = MTLClearColorMake(0.5, 0.4, 0.1, 1.0);
 
 	while (!done) {
 		ARP_PUSH();
