@@ -18,7 +18,7 @@
 static id<MTLBuffer> matbuf;
 static char done = 0;
 
-static void *render(void *c);
+static void *render(void *l);
 
 static void updatemats(float *matrices, float width, float height);
 
@@ -113,7 +113,40 @@ void MTL_main(void) {
 	SDL_DestroyWindow(window);
 }
 
-static void *render(void *c) {
+static void *render(void *l) {
+	CAMetalLayer *layer = (__bridge CAMetalLayer *)l;
+	id<MTLDevice> device = layer.device;
+
+	id<MTLCommandQueue> cmdq = [device newCommandQueue];
+
+	MTLRenderPassDescriptor *rpd = [MTLRenderPassDescriptor
+		renderPassDescriptor];
+	MTLRenderPassColorAttachmentDescriptor *color = rpd.colorAttachments[0];
+	color.loadAction = MTLLoadActionClear;
+	color.storeAction = MTLStoreActionDontCare;
+	color.clearColor = MTLClearColorMake(1.0, 0.8, 0.2, 1.0);
+
+	while (!done) {
+		ARP_PUSH();
+
+		id<CAMetalDrawable> drawable = [layer nextDrawable];
+		color.texture = drawable.texture;
+
+		id<MTLCommandBuffer> cmdb = [cmdq commandBuffer];
+
+		id<MTLRenderCommandEncoder> enc = [cmdb
+			renderCommandEncoderWithDescriptor:rpd];
+
+		[enc endEncoding];
+
+		[cmdb presentDrawable:drawable];
+		[cmdb commit];
+
+		ARP_POP();
+	}
+
+	[cmdq release];
+
 	return NULL;
 }
 
