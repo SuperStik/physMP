@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 
+#include "../math/vector.h"
 #include "main.h"
 #include "objc_macros.h"
 
@@ -126,6 +127,40 @@ static void *render(void *l) {
 	color.storeAction = MTLStoreActionDontCare;
 	color.clearColor = MTLClearColorMake(0.5, 0.4, 0.1, 1.0);
 
+	id<MTLRenderPipelineState> levelrps;
+
+	ARP_PUSH();
+	NSBundle *bundle = [NSBundle mainBundle];
+	NSURL *url = [bundle URLForResource:@"resources/shaders/default"
+			      withExtension:@"metallib"];
+
+	id<MTLLibrary> lib = [device newLibraryWithURL:url error:nil];
+
+	id<MTLFunction> levelvert = [lib newFunctionWithName:@"vertLevel"];
+	id<MTLFunction> levelfrag = [lib newFunctionWithName:@"fragLevel"];
+
+	[lib release];
+
+	MTLRenderPipelineDescriptor *desc = [MTLRenderPipelineDescriptor new];
+	desc.label = @"pipeline.level";
+	desc.vertexFunction = levelvert;
+	desc.fragmentFunction = levelfrag;
+	desc.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
+
+	[levelvert release];
+	[levelfrag release];
+
+	levelrps = [device newRenderPipelineStateWithDescriptor:desc error:nil];
+
+	[desc release];
+	ARP_POP();
+
+	gvec(float,2) verts[] = {
+		{0.0f, 1.0f},
+		{1.0f, -1.0f},
+		{-1.0f, -1.0f}
+	};
+
 	while (!done) {
 		ARP_PUSH();
 
@@ -137,6 +172,13 @@ static void *render(void *l) {
 		id<MTLRenderCommandEncoder> enc = [cmdb
 			renderCommandEncoderWithDescriptor:rpd];
 
+		[enc setRenderPipelineState:levelrps];
+		[enc setVertexBytes:verts length:sizeof(verts) atIndex:0];
+
+		[enc drawPrimitives:MTLPrimitiveTypeTriangle
+			vertexStart:0
+			vertexCount:3];
+
 		[enc endEncoding];
 
 		[cmdb presentDrawable:drawable];
@@ -145,6 +187,7 @@ static void *render(void *l) {
 		ARP_POP();
 	}
 
+	[levelrps release];
 	[cmdq release];
 
 	return NULL;
