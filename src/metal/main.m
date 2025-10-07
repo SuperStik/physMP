@@ -9,6 +9,8 @@
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 
+#include "../gutl.h"
+#include "../math/matrix.h"
 #include "../math/vector.h"
 #include "main.h"
 #include "objc_macros.h"
@@ -16,12 +18,20 @@
 #define WIDTH 640
 #define HEIGHT 480
 
-static id<MTLBuffer> matbuf;
+struct matrices {
+	gvec(float,4) view[4];
+	gvec(float,4) persp[4];
+};
+
 static char done = 0;
+static struct matrices matrices = {MAT_IDENTITY_INITIALIZER,
+	MAT_IDENTITY_INITIALIZER};
 
 static void *render(void *l);
 
-static void updatemats(float *matrices, float width, float height);
+static void rebuildprojs(struct matrices *, float w, float h);
+
+static bool windowresize(void *userdata, SDL_Event *);
 
 void MTL_main(void) {
 	SDL_Window *window = SDL_CreateWindow("unbloCked", WIDTH, HEIGHT,
@@ -79,18 +89,8 @@ void MTL_main(void) {
 		[dummy release];
 	}
 
-	bool unified = [device hasUnifiedMemory];
-
-	const MTLResourceOptions matbufops =
-		MTLResourceCPUCacheModeWriteCombined;
-	matbuf = [device newBufferWithLength:(sizeof(float) * (16 * 1))
-				     options:matbufops];
-	float *matrices = (float *)[matbuf contents];
-
-	updatemats(matrices, (float)WIDTH, (float)HEIGHT);
-	const NSRange matrange = NSMakeRange(0, sizeof(float) * (16 * 1));
-	if (!unified)
-		[matbuf didModifyRange:matrange];
+	rebuildprojs(&matrices, (float)WIDTH, (float)HEIGHT);
+	SDL_AddEventWatch(windowresize, &matrices);
 
 	pthread_t rthread;
 	pthread_create(&rthread, NULL, render, layer);
@@ -107,7 +107,6 @@ void MTL_main(void) {
 
 	pthread_join(rthread, NULL);
 
-	[matbuf release];
 	[device release];
 
 	SDL_Metal_DestroyView(view);
@@ -193,5 +192,19 @@ static void *render(void *l) {
 	return NULL;
 }
 
-static void updatemats(float *matrices, float width, float height) {
+static void rebuildprojs(struct matrices *mats, float w, float h) {
+	GUTL_perspectivef((float *)&(mats->persp), 90.0f, w / h, 0.1f, 128.0f);
+}
+
+static bool windowresize(void *udata, SDL_Event *event) {
+	struct matrices *mats = udata;
+
+	switch (event->type) {
+		case SDL_EVENT_WINDOW_RESIZED:
+			rebuildprojs(mats, (float)event->window.data1,
+					(float)event->window.data2);
+			break;
+	}
+
+	return true;
 }

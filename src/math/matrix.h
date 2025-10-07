@@ -4,6 +4,12 @@
 #include <math/vector.h>
 
 extern const gvec(float,4) mat_identity[4];
+#define MAT_IDENTITY_INITIALIZER {\
+	{1.0f, 0.0f, 0.0f, 0.0f},\
+	{0.0f, 1.0f, 0.0f, 0.0f},\
+	{0.0f, 0.0f, 1.0f, 0.0f},\
+	{0.0f, 0.0f, 0.0f, 1.0f},\
+}
 
 gvec(float,4) *mat_gettranslate(gvec(float,4) mat[4], float x, float y, float
 		z);
