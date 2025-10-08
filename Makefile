@@ -1,5 +1,5 @@
-CC ?= cc
-CXX ?= c++
+CC := clang
+CXX := clang++
 MAKE ?= make
 
 EXE := physMP
@@ -27,9 +27,9 @@ RES_OUT = $(patsubst ${RES}/%,${RES_DIR}/%,${RES_SRC})
 
 SHDR_AIR_OUT = $(patsubst ${SHDR_SRC}/%.metal,${OBJ_DIR}/%.air,${SHDR_METAL})
 
-override LIB += m pthread sdl3
+override LIB += Jolt m pthread sdl3
 override FRAMEWORK += Foundation Metal
-override LIB_PATH += /usr/local/lib
+override LIB_PATH += /usr/local/lib jolt/Build/Linux_Release
 override INCL_PATH += src jolt /usr/local/include
 
 LIB_FL := $(patsubst %,-l%,${LIB})
@@ -44,7 +44,7 @@ OUT := ${OUT_DIR}/${EXE}
 
 SCRIPT_SRC := scripts/jolt.make
 OUT_JOLT_DIR := jolt/Build/
-OUT_JOLT := ${OUT_JOLT_DIR}/Linux_Debug/libJolt.a
+OUT_JOLT := ${OUT_JOLT_DIR}/Linux_Release/libJolt.a
 
 O ?= 2
 
@@ -93,4 +93,4 @@ clean:
 	rm -fr ${OUT_DIR}
 
 fullclean: clean
-	rm -fr ${OUT_JOLT_DIR}/Linux_Debug
+	rm -fr ${OUT_JOLT_DIR}/Linux_Release

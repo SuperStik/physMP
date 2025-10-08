@@ -1,4 +1,4 @@
-OUT_DIR := Linux_Debug
+OUT_DIR := Linux_Release
 OUT := ${OUT_DIR}/libJolt.a
 
 MAKE ?= make
