@@ -25,7 +25,7 @@ SHDR_AIR_OUT = $(patsubst ${SHDR_SRC}/%.metal,${OBJ_DIR}/%.air,${SHDR_METAL})
 override LIB += m pthread sdl3
 override FRAMEWORK += Foundation Metal
 override LIB_PATH += /usr/local/lib
-override INCL_PATH += src /usr/local/include
+override INCL_PATH += src jolt /usr/local/include
 
 LIB_FL := $(patsubst %,-l%,${LIB})
 FRAMEWORK_FL := $(patsubst %, -framework %, ${FRAMEWORK})
