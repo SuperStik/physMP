@@ -1,5 +1,5 @@
+#include <cstdio>
 #include <err.h>
-#include <stdio.h>
 
 #include <SDL3/SDL_init.h>
 

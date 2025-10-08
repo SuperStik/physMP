@@ -47,7 +47,7 @@ override CCFLAGS += -flto -funsafe-math-optimizations -fno-math-errno -fvisibili
 all: ${OBJ_DIRS} ${OUT} ${SHDR_DIR}/default.metallib ${RES_OUT}
 
 ${OUT}: ${OBJ} ${OBJ_CXX}
-	${CC} $^ -O$O -o $@ ${LIB_PATH_FL} ${LIB_FL} ${FRAMEWORK_FL} ${CCFLAGS}
+	${CXX} $^ -O$O -o $@ ${LIB_PATH_FL} ${LIB_FL} ${FRAMEWORK_FL} ${CCFLAGS}
 
 ${OBJ_DIR}/%.o: ${SRC_DIR}/%.c ${OBJ_DIRS}
 	${CC} $< -O$O -o $@ -c ${INCL_PATH_FL} ${CCFLAGS}
