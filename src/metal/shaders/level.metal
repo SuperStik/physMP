@@ -1,5 +1,14 @@
+#include <metal_matrix>
+
+using namespace metal;
+
+struct matrixdata {
+	float4x4 view;
+	float4x4 persp;
+};
+
 struct vertdata {
-	float2 pos;
+	packed_float3 pos;
 };
 
 struct fragdata {
@@ -8,10 +17,11 @@ struct fragdata {
 };
 
 vertex
-fragdata vertLevel(uint vertexID [[vertex_id]], constant vertdata *verts
-		[[buffer(0)]]) {
-	float4 pos = float4(verts[vertexID].pos, 0.0f, 1.0f);
-	return {pos, pos};
+fragdata vertLevel(uint vertexID [[vertex_id]], constant matrixdata *mats
+		[[buffer(0)]], constant vertdata *verts [[buffer(1)]]) {
+	float4 pos = float4(verts[vertexID].pos, 1.0f);
+	float4 endpos = mats->persp * mats->view * pos;
+	return {endpos, pos};
 }
 
 fragment

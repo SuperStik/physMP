@@ -154,10 +154,10 @@ static void *render(void *l) {
 	[desc release];
 	ARP_POP();
 
-	gvec(float,2) verts[] = {
-		{0.0f, 1.0f},
-		{1.0f, -1.0f},
-		{-1.0f, -1.0f}
+	float verts[] = {
+		0.0f, 1.0f, 4.0f,
+		1.0f, -1.0f, 4.0f,
+		-1.0f, -1.0f, 4.0f
 	};
 
 	while (!done) {
@@ -172,7 +172,10 @@ static void *render(void *l) {
 			renderCommandEncoderWithDescriptor:rpd];
 
 		[enc setRenderPipelineState:levelrps];
-		[enc setVertexBytes:verts length:sizeof(verts) atIndex:0];
+		[enc setVertexBytes:&matrices
+			     length:sizeof(matrices)
+			    atIndex:0];
+		[enc setVertexBytes:verts length:sizeof(verts) atIndex:1];
 
 		[enc drawPrimitives:MTLPrimitiveTypeTriangle
 			vertexStart:0
