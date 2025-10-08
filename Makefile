@@ -1,5 +1,7 @@
 CC ?= cc
 CXX ?= c++
+MAKE ?= make
+
 EXE := physMP
 SRC_DIR := src
 SRC_DIRS := $(shell find ${SRC_DIR}/ -type d)
@@ -35,10 +37,14 @@ FRAMEWORK_FL := $(patsubst %, -framework %, ${FRAMEWORK})
 LIB_PATH_FL := $(patsubst %, -L%, ${LIB_PATH})
 INCL_PATH_FL := $(patsubst %, -I%, ${INCL_PATH})
 
-.PHONY: all clean
+.PHONY: all clean fullclean
 
 OUT_DIR := build
 OUT := ${OUT_DIR}/${EXE}
+
+SCRIPT_SRC := scripts/jolt.make
+OUT_JOLT_DIR := jolt/Build/
+OUT_JOLT := ${OUT_JOLT_DIR}/Linux_Debug/libJolt.a
 
 O ?= 2
 
@@ -52,7 +58,7 @@ ${OUT}: ${OBJ} ${OBJ_CXX}
 ${OBJ_DIR}/%.o: ${SRC_DIR}/%.c ${OBJ_DIRS}
 	${CC} $< -O$O -o $@ -c ${INCL_PATH_FL} ${CCFLAGS}
 
-${OBJ_DIR}/%.cxx.o: ${SRC_DIR}/%.cpp ${OBJ_DIRS}
+${OBJ_DIR}/%.cxx.o: ${SRC_DIR}/%.cpp ${OBJ_DIRS} ${OUT_JOLT}
 	${CXX} $< -O$O -o $@ -c ${INCL_PATH_FL} ${CCFLAGS}
 
 ${OBJ_DIR}/%.o: ${SRC_DIR}/%.m ${OBJ_DIRS}
@@ -61,6 +67,9 @@ ${OBJ_DIR}/%.o: ${SRC_DIR}/%.m ${OBJ_DIRS}
 ${OBJ_DIR}/%.air: ${SHDR_SRC}/%.metal ${OBJ_DIR}
 	xcrun metal -O$O -c -o $@ $<
 
+${OUT_JOLT}:
+	${MAKE} -C ${OUT_JOLT_DIR} -f ../../${SCRIPT_SRC} MAKE=${MAKE}
+
 ${SHDR_DIR}/default.metallib: ${SHDR_AIR_OUT} ${SHDR_DIR}
 	xcrun metal -o $@ ${SHDR_AIR_OUT}
 
@@ -68,7 +77,7 @@ ${RES_DIR}/%: ${RES}/% ${RES_DIR}
 	@mkdir -p `dirname $@`
 	cp -f $< $@
 
-${OBJ_DIRS}:
+${OBJ_DIRS}: ${SRC} ${SRC_CXX}
 	mkdir -p $@
 
 ${SHDR_DIR}:
@@ -82,3 +91,6 @@ ${OUT_DIR}:
 
 clean:
 	rm -fr ${OUT_DIR}
+
+fullclean: clean
+	rm -fr ${OUT_JOLT_DIR}/Linux_Debug
