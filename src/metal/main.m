@@ -10,6 +10,7 @@
 #import <Metal/Metal.h>
 
 #include "../gutl.h"
+#include "../math/angle.h"
 #include "../math/matrix.h"
 #include "../math/vector.h"
 #include "main.h"
@@ -42,6 +43,8 @@ void MTL_main(void) {
 
 	if (!SDL_SetWindowMinimumSize(window, WIDTH, HEIGHT))
 		warnx("%s", SDL_GetError());
+
+	SDL_SetWindowRelativeMouseMode(window, true);
 
 	SDL_MetalView view = SDL_Metal_CreateView(window);
 	void *l = SDL_Metal_GetLayer(view);
@@ -95,10 +98,22 @@ void MTL_main(void) {
 	pthread_t rthread;
 	pthread_create(&rthread, NULL, render, layer);
 
+	float pitch = 0.0f;
+	float yaw = 0.0f;
 	char occluded = 0;
 	SDL_Event ev;
 	while (!done && SDL_WaitEvent(&ev)) {
 		switch (ev.type) {
+			case SDL_EVENT_MOUSE_MOTION:
+				pitch -= ev.motion.yrel * 0.1f;
+				yaw -= ev.motion.xrel * 0.1f;
+				if (fabsf(pitch) > 90.0f)
+					pitch = copysignf(90.0f, pitch);
+
+				gvec(float,4) rot = ang_eul2quat(pitch, yaw,
+							0.0f);
+				mat_getrotate(matrices.view, rot);
+				break;
 			case SDL_EVENT_QUIT:
 				done = 1;
 				break;
@@ -155,9 +170,10 @@ static void *render(void *l) {
 	ARP_POP();
 
 	float verts[] = {
-		0.0f, 1.0f, 4.0f,
-		1.0f, -1.0f, 4.0f,
-		-1.0f, -1.0f, 4.0f
+		16.0f, -4.0f, 16.0f,
+		16.0f, -4.0f, -16.0f,
+		-16.0f, -4.0f, 16.0f,
+		-16.0f, -4.0f, -16.0f
 	};
 
 	while (!done) {
@@ -171,15 +187,17 @@ static void *render(void *l) {
 		id<MTLRenderCommandEncoder> enc = [cmdb
 			renderCommandEncoderWithDescriptor:rpd];
 
+		[enc setCullMode:MTLCullModeBack];
+
 		[enc setRenderPipelineState:levelrps];
 		[enc setVertexBytes:&matrices
 			     length:sizeof(matrices)
 			    atIndex:0];
 		[enc setVertexBytes:verts length:sizeof(verts) atIndex:1];
 
-		[enc drawPrimitives:MTLPrimitiveTypeTriangle
+		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip
 			vertexStart:0
-			vertexCount:3];
+			vertexCount:4];
 
 		[enc endEncoding];
 
