@@ -27,9 +27,14 @@ RES_OUT = $(patsubst ${RES}/%,${RES_DIR}/%,${RES_SRC})
 
 SHDR_AIR_OUT = $(patsubst ${SHDR_SRC}/%.metal,${OBJ_DIR}/%.air,${SHDR_METAL})
 
+SCRIPT_SRC := scripts/jolt.make
+JOLT_DIR := jolt/Build
+OUT_JOLT_DIR := ${JOLT_DIR}/Linux_Debug
+OUT_JOLT := ${OUT_JOLT_DIR}/libJolt.a
+
 override LIB += Jolt m pthread sdl3
 override FRAMEWORK += Foundation Metal
-override LIB_PATH += /usr/local/lib jolt/Build/Linux_Release
+override LIB_PATH += /usr/local/lib jolt/Build/Linux_Debug
 override INCL_PATH += src jolt /usr/local/include
 
 LIB_FL := $(patsubst %,-l%,${LIB})
@@ -41,10 +46,6 @@ INCL_PATH_FL := $(patsubst %, -I%, ${INCL_PATH})
 
 OUT_DIR := build
 OUT := ${OUT_DIR}/${EXE}
-
-SCRIPT_SRC := scripts/jolt.make
-OUT_JOLT_DIR := jolt/Build/
-OUT_JOLT := ${OUT_JOLT_DIR}/Linux_Release/libJolt.a
 
 O ?= 2
 
@@ -68,7 +69,7 @@ ${OBJ_DIR}/%.air: ${SHDR_SRC}/%.metal ${OBJ_DIR}
 	xcrun metal -O$O -c -o $@ $<
 
 ${OUT_JOLT}:
-	${MAKE} -C ${OUT_JOLT_DIR} -f ../../${SCRIPT_SRC} MAKE=${MAKE}
+	${MAKE} -C ${JOLT_DIR} -f ../../${SCRIPT_SRC} MAKE=${MAKE}
 
 ${SHDR_DIR}/default.metallib: ${SHDR_AIR_OUT} ${SHDR_DIR}
 	xcrun metal -o $@ ${SHDR_AIR_OUT}
@@ -93,4 +94,4 @@ clean:
 	rm -fr ${OUT_DIR}
 
 fullclean: clean
-	rm -fr ${OUT_JOLT_DIR}/Linux_Release
+	rm -fr ${OUT_JOLT_DIR}
