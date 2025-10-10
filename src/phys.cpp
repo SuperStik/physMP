@@ -4,9 +4,9 @@
 #define JPH_OBJECT_STREAM 1
 
 #include <cassert>
+#include <cstdint>
 #include <ctime>
 #include <err.h>
-#include <iostream>
 
 #include <Jolt/Jolt.h>
 
@@ -19,6 +19,8 @@
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/RegisterTypes.h>
+
+#include <SDL3/SDL_timer.h>
 
 #include "phys.h"
 
@@ -181,7 +183,7 @@ static void *simulate(void *p) {
 			JPH::cMaxPhysicsBarriers,
 			JPH::thread::hardware_concurrency() - 1);
 
-	const struct timespec ticksleep = {.tv_sec = 0, .tv_nsec = 16666666};
+	uint64_t cl_start, cl_end;
 	unsigned step = 0;
 
 #ifdef __APPLE__
@@ -193,12 +195,21 @@ static void *simulate(void *p) {
 		JPH::RVec3 pos = ibody.GetCenterOfMassPosition(sphere_id);
 		JPH::Vec3 vel = ibody.GetLinearVelocity(sphere_id);
 
-		std::cout << "Step " << step << ": Position = (" << pos.GetX()
-			<< ", " << pos.GetY() << ", " << pos.GetZ() <<
-			"), Velocity = (" << vel.GetX() << ", " << vel.GetY() <<
-			", " << vel.GetZ() << ')' << std::endl;
+		printf("Step %u: Position = (%g, %g, %g), Velocity = (%g, %g, "
+				"%g)\n", step, pos.GetX(), pos.GetY(),
+				pos.GetZ(), vel.GetX(), vel.GetY(), vel.GetZ());
 
+		cl_start = SDL_GetTicksNS();
 		physsys->Update(1.0f / 60.0f, 1, &tempalloc, &jobsys);
+		cl_end = SDL_GetTicksNS();
+
+		uint64_t duration = cl_end - cl_start;
+		const uint64_t idealsleeptime = 16666666;
+		int64_t sleeptime = idealsleeptime - duration;
+		if (sleeptime < 0)
+			sleeptime = 0;
+
+		struct timespec ticksleep = {.tv_sec = 0, .tv_nsec = sleeptime};
 
 		nanosleep(&ticksleep, NULL);
 	}
