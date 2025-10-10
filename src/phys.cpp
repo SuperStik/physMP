@@ -11,11 +11,15 @@
 #include <Jolt/Core/Factory.h>
 #include <Jolt/Core/TempAllocator.h>
 #include <Jolt/Core/JobSystemThreadPool.h>
+#include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/RegisterTypes.h>
 
 #include "phys.h"
+
+using namespace JPH::literals;
 
 namespace BPL {
 	static constexpr JPH::BroadPhaseLayer NON_MOVING(0);
@@ -143,6 +147,21 @@ static void *simulate(void *p) {
 	JPH::PhysicsSystem *physsys = static_cast<JPH::PhysicsSystem *>(p);
 
 	JPH::BodyInterface &ibody = physsys->GetBodyInterfaceNoLock();
+
+	JPH::BoxShapeSettings floor_shape_settings(JPH::Vec3(256.0f, 1.0f,
+				256.0f));
+	floor_shape_settings.SetEmbedded();
+
+	JPH::ShapeSettings::ShapeResult floor_shape_result =
+		floor_shape_settings.Create();
+	JPH::ShapeRefC floor_shape = floor_shape_result.Get();
+
+	JPH::BodyCreationSettings floor_settings(floor_shape, JPH::RVec3(0.0_r,
+				-4.5_r, 0.0_r), JPH::Quat::sIdentity(),
+				JPH::EMotionType::Static, Layers::NON_MOVING);
+
+	JPH::Body *floor = ibody.CreateBody(floor_settings);
+	ibody.AddBody(floor->GetID(), JPH::EActivation::DontActivate);
 
 	delete physsys;
 

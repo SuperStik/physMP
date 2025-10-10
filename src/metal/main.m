@@ -170,10 +170,10 @@ static void *render(void *l) {
 	ARP_POP();
 
 	float verts[] = {
-		16.0f, -4.0f, 16.0f,
-		16.0f, -4.0f, -16.0f,
-		-16.0f, -4.0f, 16.0f,
-		-16.0f, -4.0f, -16.0f
+		128.0f, -16.0f, 128.0f,
+		128.0f, -16.0f, -128.0f,
+		-128.0f, -16.0f, 128.0f,
+		-128.0f, -16.0f, -128.0f
 	};
 
 	while (!done) {
@@ -214,7 +214,7 @@ static void *render(void *l) {
 }
 
 static void rebuildprojs(struct matrices *mats, float w, float h) {
-	GUTL_perspectivef((float *)&(mats->persp), 90.0f, w / h, 0.1f, 128.0f);
+	GUTL_perspectivef((float *)&(mats->persp), 90.0f, w / h, 0.1f, 256.0f);
 }
 
 static bool windowresize(void *udata, SDL_Event *event) {
