@@ -6,6 +6,10 @@
 #include "metal/main.h"
 #include "phys.h"
 
+C_BEGIN;
+char done = 0;
+C_END;
+
 int main(void) {
 	char initialized = SDL_Init(SDL_INIT_VIDEO);
 	if (!initialized)

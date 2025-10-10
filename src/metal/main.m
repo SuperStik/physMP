@@ -24,7 +24,7 @@ struct matrices {
 	gvec(float,4) persp[4];
 };
 
-static char done = 0;
+extern char done;
 static struct matrices matrices = {MAT_IDENTITY_INITIALIZER,
 	MAT_IDENTITY_INITIALIZER};
 

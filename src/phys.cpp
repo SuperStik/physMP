@@ -4,7 +4,9 @@
 #define JPH_OBJECT_STREAM 1
 
 #include <cassert>
+#include <ctime>
 #include <err.h>
+#include <iostream>
 
 #include <Jolt/Jolt.h>
 
@@ -13,11 +15,16 @@
 #include <Jolt/Core/JobSystemThreadPool.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
+#include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/RegisterTypes.h>
 
 #include "phys.h"
+
+C_BEGIN;
+extern char done;
+C_END;
 
 using namespace JPH::literals;
 
@@ -101,6 +108,12 @@ class ObjLayerPairFilterImpl : public JPH::ObjectLayerPairFilter {
 
 static void *simulate(void *physics_system);
 
+static IBPLayerImpl ibpl;
+
+static ObjVsBPLFilterImpl objbplfilter;
+
+static ObjLayerPairFilterImpl objlayerpairfilter;
+
 pthread_t phys_begin() {
 	JPH::RegisterDefaultAllocator();
 
@@ -110,22 +123,10 @@ pthread_t phys_begin() {
 
 	JPH::RegisterTypes();
 
-	JPH::TempAllocatorImpl(10 * 1024 * 1024);
-
-	JPH::JobSystemThreadPool jobsys(JPH::cMaxPhysicsJobs,
-			JPH::cMaxPhysicsBarriers,
-			JPH::thread::hardware_concurrency() - 1);
-
 	const unsigned maxbodies = 65536;
 	const unsigned numbodymutexes = 0;
 	const unsigned maxbodypairs = 65536;
 	const unsigned maxcontactconstraints = 10240;
-
-	IBPLayerImpl ibpl;
-
-	ObjVsBPLFilterImpl objbplfilter;
-
-	ObjLayerPairFilterImpl objlayerpairfilter;
 
 	JPH::PhysicsSystem *physsys = new JPH::PhysicsSystem();
 	physsys->Init(maxbodies, numbodymutexes, maxbodypairs,
@@ -139,6 +140,8 @@ pthread_t phys_begin() {
 
 void phys_end(pthread_t thread) {
 	pthread_join(thread, NULL);
+
+	JPH::UnregisterTypes();
 
 	delete JPH::Factory::sInstance;
 }
@@ -162,6 +165,43 @@ static void *simulate(void *p) {
 
 	JPH::Body *floor = ibody.CreateBody(floor_settings);
 	ibody.AddBody(floor->GetID(), JPH::EActivation::DontActivate);
+
+	JPH::BodyCreationSettings sphere_settings(new JPH::SphereShape(0.5f),
+			JPH::RVec3(0.0_r, 2.0_r, 0.0_r), JPH::Quat::sIdentity(),
+			JPH::EMotionType::Dynamic, Layers::MOVING);
+	JPH::BodyID sphere_id = ibody.CreateAndAddBody(sphere_settings,
+			JPH::EActivation::Activate);
+	//ibody.SetLinearVelocity(sphere_id, JPH::Vec3(0.0f, -5.0f, 0.0f));
+
+	physsys->OptimizeBroadPhase();
+
+	JPH::TempAllocatorImpl tempalloc(10 * 1024 * 1024);
+
+	JPH::JobSystemThreadPool jobsys(JPH::cMaxPhysicsJobs,
+			JPH::cMaxPhysicsBarriers,
+			JPH::thread::hardware_concurrency() - 1);
+
+	const struct timespec ticksleep = {.tv_sec = 0, .tv_nsec = 16666666};
+	unsigned step = 0;
+
+#ifdef __APPLE__
+	pthread_setname_np("physMP.physics-thread");
+#endif /* __APPLE__ */
+	while (ibody.IsActive(sphere_id) && !done) {
+		++step;
+
+		JPH::RVec3 pos = ibody.GetCenterOfMassPosition(sphere_id);
+		JPH::Vec3 vel = ibody.GetLinearVelocity(sphere_id);
+
+		std::cout << "Step " << step << ": Position = (" << pos.GetX()
+			<< ", " << pos.GetY() << ", " << pos.GetZ() <<
+			"), Velocity = (" << vel.GetX() << ", " << vel.GetY() <<
+			", " << vel.GetZ() << ')' << std::endl;
+
+		physsys->Update(1.0f / 60.0f, 1, &tempalloc, &jobsys);
+
+		nanosleep(&ticksleep, NULL);
+	}
 
 	delete physsys;
 
