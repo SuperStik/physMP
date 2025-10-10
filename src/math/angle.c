@@ -48,16 +48,29 @@ gvec(float,4) ang_eul2quat(float p, float y, float r) {
 	qin2.vec = q2;
 	qin.mm = _mm_addsub_ps(qin1.mm, qin2.mm);
 	q = qin.vec;
-#else
+#else /* !__SSE3__ */
 	/* has to do multiple otherwise */
 	/* I think something's backwards here.. */
 	q[0] = q1[0] - q2[0];
 	q[1] = q1[1] + q2[1];
 	q[2] = q1[2] - q2[2];
 	q[3] = q1[3] + q2[3];
-#endif /* __SSE3__ */
+#endif
 
 	return q;
+}
+
+gvec(float,4) ang_eulnoroll2quat(float p, float y) {
+	gvec(float,2) sins, coss;
+	gvec(float,2) vals = {p, y};
+	vals /= 360.0f;
+
+	SINCOSPIvf2(vals, &sins, &coss);
+
+	gvec(float,4) roll = {coss[0], sins[0], coss[0], sins[0]};
+	gvec(float,4) pitch = {coss[1], coss[1], sins[1], sins[1]};
+
+	return roll * pitch;
 }
 
 gvec(float,4) ang_axisang2quat(gvec(float,4) a) {

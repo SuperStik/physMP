@@ -4,6 +4,7 @@
 #include <math/vector.h>
 
 gvec(float,4) ang_eul2quat(float p, float y, float r);
+gvec(float,4) ang_eulnoroll2quat(float p, float y);
 
 gvec(float,4) ang_axisang2quat(gvec(float,4));
 

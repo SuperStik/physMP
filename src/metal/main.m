@@ -110,8 +110,8 @@ void MTL_main(void) {
 				if (fabsf(pitch) > 90.0f)
 					pitch = copysignf(90.0f, pitch);
 
-				gvec(float,4) rot = ang_eul2quat(pitch, yaw,
-							0.0f);
+				gvec(float,4) rot = ang_eulnoroll2quat(pitch,
+						yaw);
 				mat_getrotate(matrices.view, rot);
 				break;
 			case SDL_EVENT_QUIT:
