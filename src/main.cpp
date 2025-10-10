@@ -122,14 +122,21 @@ int main(void) {
 	const unsigned maxbodypairs = 65536;
 	const unsigned maxcontactconstraints = 10240;
 
-	IBPLayerImpl bpl_interface;
+	IBPLayerImpl ibpl;
 
 	ObjVsBPLFilterImpl objbplfilter;
 
 	ObjLayerPairFilterImpl objlayerpairfilter;
 
+	JPH::PhysicsSystem physsys;
+	physsys.Init(maxbodies, numbodymutexes, maxbodypairs,
+			maxcontactconstraints, ibpl, objbplfilter,
+			objlayerpairfilter);
+
 	fputs("Hello physMP!\n", stderr);
 	MTL_main();
+
+	JPH::UnregisterTypes();
 
 	delete JPH::Factory::sInstance;
 
