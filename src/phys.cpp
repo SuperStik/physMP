@@ -192,6 +192,8 @@ static void *simulate(void *p) {
 	while (ibody.IsActive(sphere_id) && !done) {
 		++step;
 
+		cl_start = SDL_GetTicksNS();
+
 		JPH::RVec3 pos = ibody.GetCenterOfMassPosition(sphere_id);
 		JPH::Vec3 vel = ibody.GetLinearVelocity(sphere_id);
 
@@ -199,8 +201,8 @@ static void *simulate(void *p) {
 				"%g)\n", step, pos.GetX(), pos.GetY(),
 				pos.GetZ(), vel.GetX(), vel.GetY(), vel.GetZ());
 
-		cl_start = SDL_GetTicksNS();
 		physsys->Update(1.0f / 60.0f, 1, &tempalloc, &jobsys);
+
 		cl_end = SDL_GetTicksNS();
 
 		uint64_t duration = cl_end - cl_start;
