@@ -172,6 +172,8 @@ static void *render(void *l) {
 
 	id<MTLCommandQueue> cmdq = [device newCommandQueue];
 
+	pthread_setname_np("physMP.render-thread.Metal");
+
 	MTLRenderPassDescriptor *rpd = [MTLRenderPassDescriptor
 		renderPassDescriptor];
 
