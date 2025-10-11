@@ -34,6 +34,8 @@ static struct matrices matrices = {MAT_IDENTITY_INITIALIZER,
 static pthread_mutex_t depthmut = PTHREAD_MUTEX_INITIALIZER;
 static id<MTLTexture> depthbuf;
 
+static pthread_mutex_t occlmut = PTHREAD_MUTEX_INITIALIZER;
+
 static void *render(void *l);
 
 static void rebuildprojs(struct matrices *, float w, float h);
@@ -137,8 +139,23 @@ void MTL_main(void) {
 			case SDL_EVENT_QUIT:
 				done = 1;
 				break;
+			case SDL_EVENT_WINDOW_EXPOSED:
+				if (occluded) {
+					pthread_mutex_unlock(&occlmut);
+					occluded = 0;
+				}
+				break;
+			case SDL_EVENT_WINDOW_OCCLUDED:
+				if (!occluded) {
+					pthread_mutex_lock(&occlmut);
+					occluded = 1;
+				}
+				break;
 		}
 	}
+
+	if (occluded)
+		pthread_mutex_unlock(&occlmut);
 
 	pthread_join(rthread, NULL);
 
@@ -268,6 +285,10 @@ static void *render(void *l) {
 		[cmdb commit];
 
 		ARP_POP();
+
+		/* pause render thread when window is occluded */
+		pthread_mutex_lock(&occlmut);
+		pthread_mutex_unlock(&occlmut);
 	}
 
 	shdr_release(&shdr);
