@@ -26,6 +26,23 @@ struct matrices {
 	gvec(float,4) persp[4];
 };
 
+struct vertdata {
+	float pos[3];
+	float normal[3];
+};
+
+struct model {
+	gvec(float,4) model[4];
+	gvec(float,4) normal[3];
+};
+
+struct lightdata {
+	float position[3];
+	float ambient[3];
+	float diffuse[3];
+	float specular[3];
+};
+
 extern char done;
 
 static struct matrices matrices = {MAT_IDENTITY_INITIALIZER,
@@ -203,40 +220,66 @@ static void *render(void *l) {
 		-128.0f, -4.0f, -128.0f
 	};
 
-	const float cube[] = {
-		-0.5f, -0.5f, -0.5f,
-		-0.5f, -0.5f, 0.5f,
-		-0.5f, 0.5f, -0.5f,
-		-0.5f, 0.5f, 0.5f,
-		0.5f, -0.5f, -0.5f,
-		0.5f, -0.5f, 0.5f,
-		0.5f, 0.5f, -0.5f,
-		0.5f, 0.5f, 0.5f,
+	const struct vertdata cube[] = {
+		{{-0.5f, -0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}},
+		{{-0.5f, -0.5f, 0.5f}, {-1.0f, 0.0f, 0.0f}},
+		{{-0.5f, 0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}},
+		{{-0.5f, 0.5f, 0.5f}, {-1.0f, 0.0f, 0.0f}},
+
+		{{0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+		{{0.5f, 0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+		{{0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
+		{{0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
+
+		{{-0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}},
+		{{0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}},
+		{{-0.5f, -0.5f, 0.5f}, {0.0f, -1.0f, 0.0f}},
+		{{0.5f, -0.5f, 0.5f}, {0.0f, -1.0f, 0.0f}},
+
+		{{-0.5f, 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+		{{-0.5f, 0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+		{{0.5f, 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+		{{0.5f, 0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+
+		{{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}},
+		{{-0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}},
+		{{0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}},
+		{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}},
+
+		{{-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+		{{0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+		{{-0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+		{{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
 	};
 
 	const uint16_t cubeinds[] = {
 		0, 1, 2,
 		2, 1, 3,
 
-		0, 4, 1,
-		1, 4, 5,
+		8, 9, 10,
+		10, 9, 11,
 
-		0, 2, 4,
-		4, 2, 6,
+		16, 17, 18,
+		18, 17, 19,
 
-		4, 6, 5,
-		5, 6, 7,
+		4, 5, 6,
+		6, 5, 7,
 
-		2, 3, 6,
-		6, 3, 7,
+		12, 13, 14,
+		14, 13, 15,
 
-		1, 5, 3,
-		3, 5, 7
+		20, 21, 22,
+		22, 21, 23
 	};
 
 	id<MTLBuffer> cubeinds_buf = [device
 		newBufferWithBytes:cubeinds
 			    length:sizeof(cubeinds)
+			   options:MTLResourceCPUCacheModeWriteCombined];
+
+	id<MTLBuffer> cube_buf = [device
+		newBufferWithBytes:cube
+			    length:sizeof(cube)
 			   options:MTLResourceCPUCacheModeWriteCombined];
 
 	while (!done) {
@@ -263,10 +306,29 @@ static void *render(void *l) {
 			    atIndex:0];
 
 		[enc setRenderPipelineState:shdr.object];
-		[enc setVertexBytes:modelobj
-			     length:sizeof(float) * 16
+
+		struct model model;
+		memcpy(model.model, modelobj, sizeof(float) * 16);
+		gvec(float,4) modelinv[4];
+		mat_inverse_t(model.model, modelinv);
+		memcpy(model.normal, modelinv, sizeof(float) * 12);
+		[enc setVertexBytes:&model
+			     length:sizeof(model)
 			    atIndex:1];
-		[enc setVertexBytes:cube length:sizeof(cube) atIndex:15];
+		[enc setVertexBuffer:cube_buf offset:0 atIndex:15];
+
+		const struct lightdata light = {
+			{0.0f, 0.0f, 0.0f},
+			{0.2f, 0.2f, 0.2f},
+			{0.5f, 0.5f, 0.5f},
+			{1.0f, 1.0f, 1.0f}
+		};
+		[enc setFragmentBytes:&light length:sizeof(light) atIndex:0];
+
+		float viewpos[3] = {0.0f, 0.0f, 0.0f};
+		[enc setFragmentBytes:&viewpos
+			       length:sizeof(viewpos)
+			      atIndex:1];
 
 		[enc drawIndexedPrimitives:MTLPrimitiveTypeTriangle
 				indexCount:36
@@ -295,6 +357,7 @@ static void *render(void *l) {
 
 	shdr_release(&shdr);
 	[depthstencil release];
+	[cube_buf release];
 	[cubeinds_buf release];
 	[cmdq release];
 
