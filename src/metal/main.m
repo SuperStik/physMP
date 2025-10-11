@@ -27,8 +27,12 @@ struct matrices {
 };
 
 extern char done;
+
 static struct matrices matrices = {MAT_IDENTITY_INITIALIZER,
 	MAT_IDENTITY_INITIALIZER};
+
+static pthread_mutex_t depthmut = PTHREAD_MUTEX_INITIALIZER;
+static id<MTLTexture> depthbuf;
 
 static void *render(void *l);
 
@@ -94,8 +98,22 @@ void MTL_main(void) {
 		[dummy release];
 	}
 
+	ARP_PUSH();
+	int pixw, pixh;
+	SDL_GetWindowSizeInPixels(window, &pixw, &pixh);
+
+	MTLTextureDescriptor *depthdesc = [MTLTextureDescriptor
+		texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float
+					     width:pixw
+					    height:pixh
+					 mipmapped:false];
+	depthdesc.storageMode = MTLStorageModePrivate;
+
+	depthbuf = [device newTextureWithDescriptor:depthdesc];
+	ARP_POP();
+
 	rebuildprojs(&matrices, (float)WIDTH, (float)HEIGHT);
-	SDL_AddEventWatch(windowresize, &matrices);
+	SDL_AddEventWatch(windowresize, device);
 
 	pthread_t rthread;
 	pthread_create(&rthread, NULL, render, layer);
@@ -124,6 +142,7 @@ void MTL_main(void) {
 
 	pthread_join(rthread, NULL);
 
+	[depthbuf release];
 	[device release];
 
 	SDL_Metal_DestroyView(view);
@@ -138,19 +157,31 @@ static void *render(void *l) {
 
 	MTLRenderPassDescriptor *rpd = [MTLRenderPassDescriptor
 		renderPassDescriptor];
+
 	MTLRenderPassColorAttachmentDescriptor *color = rpd.colorAttachments[0];
 	color.loadAction = MTLLoadActionClear;
 	color.storeAction = MTLStoreActionDontCare;
 	color.clearColor = MTLClearColorMake(0.5, 0.4, 0.1, 1.0);
 
+	MTLRenderPassDepthAttachmentDescriptor *depth = rpd.depthAttachment;
+	depth.loadAction = MTLLoadActionClear;
+	depth.storeAction = MTLStoreActionDontCare;
+
+	MTLDepthStencilDescriptor *dsdesc = [MTLDepthStencilDescriptor new];
+	dsdesc.depthCompareFunction = MTLCompareFunctionLessEqual;
+	dsdesc.depthWriteEnabled = true;
+	id<MTLDepthStencilState> depthstencil = [device
+		newDepthStencilStateWithDescriptor:dsdesc];
+	[dsdesc release];
+
 	struct shaders shdr;
 	shdr_load(&shdr, device);
 
 	const float verts[] = {
-		128.0f, -16.0f, 128.0f,
-		128.0f, -16.0f, -128.0f,
-		-128.0f, -16.0f, 128.0f,
-		-128.0f, -16.0f, -128.0f
+		128.0f, -4.0f, 128.0f,
+		128.0f, -4.0f, -128.0f,
+		-128.0f, -4.0f, 128.0f,
+		-128.0f, -4.0f, -128.0f
 	};
 
 	const float cube[] = {
@@ -195,6 +226,10 @@ static void *render(void *l) {
 		id<CAMetalDrawable> drawable = [layer nextDrawable];
 		color.texture = drawable.texture;
 
+		pthread_mutex_lock(&depthmut);
+		depth.texture = depthbuf;
+		pthread_mutex_unlock(&depthmut);
+
 		id<MTLCommandBuffer> cmdb = [cmdq commandBuffer];
 
 		id<MTLRenderCommandEncoder> enc = [cmdb
@@ -202,16 +237,11 @@ static void *render(void *l) {
 
 		[enc setCullMode:MTLCullModeBack];
 
-		[enc setRenderPipelineState:shdr.level];
+		[enc setDepthStencilState:depthstencil];
+
 		[enc setVertexBytes:&matrices
 			     length:sizeof(matrices)
 			    atIndex:0];
-
-		[enc setVertexBytes:verts length:sizeof(verts) atIndex:1];
-
-		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip
-			vertexStart:0
-			vertexCount:4];
 
 		[enc setRenderPipelineState:shdr.object];
 		[enc setVertexBytes:modelobj
@@ -225,6 +255,14 @@ static void *render(void *l) {
 			       indexBuffer:cubeinds_buf
 			 indexBufferOffset:0];
 
+		[enc setRenderPipelineState:shdr.level];
+		[enc setVertexBytes:verts length:sizeof(verts) atIndex:1];
+
+		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip
+			vertexStart:0
+			vertexCount:4];
+
+
 		[enc endEncoding];
 
 		[cmdb presentDrawable:drawable];
@@ -234,6 +272,7 @@ static void *render(void *l) {
 	}
 
 	shdr_release(&shdr);
+	[depthstencil release];
 	[cubeinds_buf release];
 	[cmdq release];
 
@@ -245,11 +284,33 @@ static void rebuildprojs(struct matrices *mats, float w, float h) {
 }
 
 static bool windowresize(void *udata, SDL_Event *event) {
-	struct matrices *mats = udata;
+	id<MTLDevice> device = (__bridge id<MTLDevice>)udata;
 
 	switch (event->type) {
+		case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+			;
+			int32_t pixw = event->window.data1;
+			int32_t pixh = event->window.data2;
+
+			ARP_PUSH();
+
+			MTLPixelFormat depthfmt = MTLPixelFormatDepth32Float;
+			MTLTextureDescriptor *depthdesc =[MTLTextureDescriptor
+				texture2DDescriptorWithPixelFormat:depthfmt
+							     width:pixw
+							    height:pixh
+							 mipmapped:false];
+			depthdesc.storageMode = MTLStorageModePrivate;
+
+			pthread_mutex_lock(&depthmut);
+			[depthbuf release];
+			depthbuf = [device newTextureWithDescriptor:depthdesc];
+			pthread_mutex_unlock(&depthmut);
+
+			ARP_POP();
+			break;
 		case SDL_EVENT_WINDOW_RESIZED:
-			rebuildprojs(mats, (float)event->window.data1,
+			rebuildprojs(&matrices, (float)event->window.data1,
 					(float)event->window.data2);
 			break;
 	}
