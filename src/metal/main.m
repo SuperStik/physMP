@@ -256,7 +256,7 @@ static void *render(void *l) {
 			 indexBufferOffset:0];
 
 		[enc setRenderPipelineState:shdr.level];
-		[enc setVertexBytes:verts length:sizeof(verts) atIndex:1];
+		[enc setVertexBytes:verts length:sizeof(verts) atIndex:15];
 
 		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip
 			vertexStart:0
