@@ -176,7 +176,7 @@ static void *simulate(void *p) {
 			JPH::EMotionType::Dynamic, Layers::MOVING);
 	JPH::BodyID sphere_id = ibody.CreateAndAddBody(sphere_settings,
 			JPH::EActivation::Activate);
-	//ibody.SetLinearVelocity(sphere_id, JPH::Vec3(0.0f, -5.0f, 0.0f));
+	ibody.SetLinearVelocity(sphere_id, JPH::Vec3(0.25f, 0.0f, 0.5f));
 
 	physsys->OptimizeBroadPhase();
 
@@ -202,10 +202,6 @@ static void *simulate(void *p) {
 
 		const JPH::Mat44 trans = ibody.GetWorldTransform(sphere_id);
 		memcpy(modelobj, &trans, sizeof(float) * 16);
-
-		printf("Step %u: Position = (%g, %g, %g), Velocity = (%g, %g, "
-				"%g)\n", step, pos.GetX(), pos.GetY(),
-				pos.GetZ(), vel.GetX(), vel.GetY(), vel.GetZ());
 
 		physsys->Update(1.0f / 60.0f, 1, &tempalloc, &jobsys);
 

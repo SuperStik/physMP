@@ -16,6 +16,7 @@
 #include "../shared.h"
 #include "main.h"
 #include "objc_macros.h"
+#include "shaders.h"
 
 #define WIDTH 640
 #define HEIGHT 480
@@ -142,40 +143,51 @@ static void *render(void *l) {
 	color.storeAction = MTLStoreActionDontCare;
 	color.clearColor = MTLClearColorMake(0.5, 0.4, 0.1, 1.0);
 
-	id<MTLRenderPipelineState> levelrps;
+	struct shaders shdr;
+	shdr_load(&shdr, device);
 
-	ARP_PUSH();
-	NSBundle *bundle = [NSBundle mainBundle];
-	NSURL *url = [bundle URLForResource:@"resources/shaders/default"
-			      withExtension:@"metallib"];
-
-	id<MTLLibrary> lib = [device newLibraryWithURL:url error:nil];
-
-	id<MTLFunction> levelvert = [lib newFunctionWithName:@"vertLevel"];
-	id<MTLFunction> levelfrag = [lib newFunctionWithName:@"fragLevel"];
-
-	[lib release];
-
-	MTLRenderPipelineDescriptor *desc = [MTLRenderPipelineDescriptor new];
-	desc.label = @"pipeline.level";
-	desc.vertexFunction = levelvert;
-	desc.fragmentFunction = levelfrag;
-	desc.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
-
-	[levelvert release];
-	[levelfrag release];
-
-	levelrps = [device newRenderPipelineStateWithDescriptor:desc error:nil];
-
-	[desc release];
-	ARP_POP();
-
-	float verts[] = {
+	const float verts[] = {
 		128.0f, -16.0f, 128.0f,
 		128.0f, -16.0f, -128.0f,
 		-128.0f, -16.0f, 128.0f,
 		-128.0f, -16.0f, -128.0f
 	};
+
+	const float cube[] = {
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, 0.5f,
+		-0.5f, 0.5f, -0.5f,
+		-0.5f, 0.5f, 0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, 0.5f,
+		0.5f, 0.5f, -0.5f,
+		0.5f, 0.5f, 0.5f,
+	};
+
+	const uint16_t cubeinds[] = {
+		0, 1, 2,
+		2, 1, 3,
+
+		0, 4, 1,
+		1, 4, 5,
+
+		0, 2, 4,
+		4, 2, 6,
+
+		4, 6, 5,
+		5, 6, 7,
+
+		2, 3, 6,
+		6, 3, 7,
+
+		1, 5, 3,
+		3, 5, 7
+	};
+
+	id<MTLBuffer> cubeinds_buf = [device
+		newBufferWithBytes:cubeinds
+			    length:sizeof(cubeinds)
+			   options:MTLResourceCPUCacheModeWriteCombined];
 
 	while (!done) {
 		ARP_PUSH();
@@ -190,15 +202,28 @@ static void *render(void *l) {
 
 		[enc setCullMode:MTLCullModeBack];
 
-		[enc setRenderPipelineState:levelrps];
+		[enc setRenderPipelineState:shdr.level];
 		[enc setVertexBytes:&matrices
 			     length:sizeof(matrices)
 			    atIndex:0];
+
 		[enc setVertexBytes:verts length:sizeof(verts) atIndex:1];
 
 		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip
 			vertexStart:0
 			vertexCount:4];
+
+		[enc setRenderPipelineState:shdr.object];
+		[enc setVertexBytes:modelobj
+			     length:sizeof(float) * 16
+			    atIndex:1];
+		[enc setVertexBytes:cube length:sizeof(cube) atIndex:15];
+
+		[enc drawIndexedPrimitives:MTLPrimitiveTypeTriangle
+				indexCount:36
+				 indexType:MTLIndexTypeUInt16
+			       indexBuffer:cubeinds_buf
+			 indexBufferOffset:0];
 
 		[enc endEncoding];
 
@@ -208,7 +233,8 @@ static void *render(void *l) {
 		ARP_POP();
 	}
 
-	[levelrps release];
+	shdr_release(&shdr);
+	[cubeinds_buf release];
 	[cmdq release];
 
 	return NULL;

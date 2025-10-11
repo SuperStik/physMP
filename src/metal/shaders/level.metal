@@ -24,6 +24,7 @@ fragdata vertLevel(uint vertexID [[vertex_id]], constant matrixdata *mats
 	return {endpos, pos};
 }
 
+[[early_fragment_tests]]
 fragment
 float4 fragLevel(fragdata frag [[stage_in]]) {
 	return frag.color;

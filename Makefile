@@ -22,7 +22,6 @@ OBJ = $(patsubst src/%.m,${OBJ_DIR}/%.o,${OBJ_C})
 OBJ_CXX = $(patsubst src/%.cpp,${OBJ_DIR}/%.cxx.o,${SRC_CXX})
 OBJ_DIRS = $(patsubst ${SRC_DIR}/%,${OBJ_DIR}/%,${SRC_DIRS})
 RES_DIR = ${OUT_DIR}/resources
-SHDR_DIR = ${RES_DIR}/shaders
 RES_OUT = $(patsubst ${RES}/%,${RES_DIR}/%,${RES_SRC})
 
 SHDR_AIR_OUT = $(patsubst ${SHDR_SRC}/%.metal,${OBJ_DIR}/%.air,${SHDR_METAL})
@@ -51,7 +50,7 @@ O ?= 2
 
 override CCFLAGS += -flto -funsafe-math-optimizations -fno-math-errno -fvisibility=hidden
 
-all: ${OBJ_DIRS} ${OUT} ${SHDR_DIR}/default.metallib ${RES_OUT}
+all: ${OBJ_DIRS} ${OUT} ${OUT_DIR}/default.metallib ${RES_OUT}
 
 ${OUT}: ${OBJ} ${OBJ_CXX}
 	${CXX} $^ -O$O -o $@ ${LIB_PATH_FL} ${LIB_FL} ${FRAMEWORK_FL} ${CCFLAGS}
@@ -71,8 +70,8 @@ ${OBJ_DIR}/%.air: ${SHDR_SRC}/%.metal ${OBJ_DIR}
 ${OUT_JOLT}:
 	${MAKE} -C ${JOLT_DIR} -f ../../${SCRIPT_SRC} MAKE=${MAKE}
 
-${SHDR_DIR}/default.metallib: ${SHDR_AIR_OUT} ${SHDR_DIR}
-	xcrun metal -o $@ ${SHDR_AIR_OUT}
+${OUT_DIR}/default.metallib: ${SHDR_AIR_OUT}
+	xcrun metal -o $@ $^
 
 ${RES_DIR}/%: ${RES}/% ${RES_DIR}
 	@mkdir -p `dirname $@`
