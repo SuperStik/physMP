@@ -1,7 +1,10 @@
 #ifndef MATRIX_H
 #define MATRIX_H 1
 
+#include <cppheader.h>
 #include <math/vector.h>
+
+C_BEGIN;
 
 extern const gvec(float,4) mat_identity[4];
 #define MAT_IDENTITY_INITIALIZER {\
@@ -39,5 +42,7 @@ gvec(float,4) *mat_smul(const gvec(float,4) a[4], float s, gvec(float,4) *
 		restrict b);
 
 float *mat_trunc3(const gvec(float,4) a[4], float b[9]);
+
+C_END;
 
 #endif /* MATRIX_H */

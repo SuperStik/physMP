@@ -13,6 +13,7 @@
 #include "../math/angle.h"
 #include "../math/matrix.h"
 #include "../math/vector.h"
+#include "../shared.h"
 #include "main.h"
 #include "objc_macros.h"
 

@@ -22,10 +22,13 @@
 
 #include <SDL3/SDL_timer.h>
 
+#include "math/matrix.h"
 #include "phys.h"
+#include "shared.h"
 
 C_BEGIN;
 extern char done;
+gvec(float,4) modelobj[4];
 C_END;
 
 using namespace JPH::literals;
@@ -183,7 +186,7 @@ static void *simulate(void *p) {
 			JPH::cMaxPhysicsBarriers,
 			JPH::thread::hardware_concurrency() - 1);
 
-	uint64_t cl_start, cl_end;
+	uint64_t cl_start;
 	unsigned step = 0;
 
 #ifdef __APPLE__
@@ -197,15 +200,16 @@ static void *simulate(void *p) {
 		JPH::RVec3 pos = ibody.GetCenterOfMassPosition(sphere_id);
 		JPH::Vec3 vel = ibody.GetLinearVelocity(sphere_id);
 
+		const JPH::Mat44 trans = ibody.GetWorldTransform(sphere_id);
+		memcpy(modelobj, &trans, sizeof(float) * 16);
+
 		printf("Step %u: Position = (%g, %g, %g), Velocity = (%g, %g, "
 				"%g)\n", step, pos.GetX(), pos.GetY(),
 				pos.GetZ(), vel.GetX(), vel.GetY(), vel.GetZ());
 
 		physsys->Update(1.0f / 60.0f, 1, &tempalloc, &jobsys);
 
-		cl_end = SDL_GetTicksNS();
-
-		uint64_t duration = cl_end - cl_start;
+		uint64_t duration = SDL_GetTicksNS() - cl_start;
 		const uint64_t idealsleeptime = 16666666;
 		int64_t sleeptime = idealsleeptime - duration;
 		if (sleeptime < 0)

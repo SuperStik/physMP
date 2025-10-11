@@ -14,6 +14,12 @@
 #endif
 
 #if SIMD_COMPILER_HAS_REQUIRED_FEATURES
+
+/* thanks C++ */
+#ifdef __cplusplus
+using namespace simd;
+#endif
+
 __attribute__((always_inline))
 static inline gvec(float,4) SINvf3(gvec(float,4) x) {
 	simd_float3 xvals = {x[0], x[1], x[2]};
