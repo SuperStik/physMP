@@ -262,7 +262,6 @@ static void *render(void *l) {
 			vertexStart:0
 			vertexCount:4];
 
-
 		[enc endEncoding];
 
 		[cmdb presentDrawable:drawable];
@@ -288,11 +287,9 @@ static bool windowresize(void *udata, SDL_Event *event) {
 
 	switch (event->type) {
 		case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
-			;
+			ARP_PUSH();
 			int32_t pixw = event->window.data1;
 			int32_t pixh = event->window.data2;
-
-			ARP_PUSH();
 
 			MTLPixelFormat depthfmt = MTLPixelFormatDepth32Float;
 			MTLTextureDescriptor *depthdesc =[MTLTextureDescriptor
