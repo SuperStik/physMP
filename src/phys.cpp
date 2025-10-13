@@ -24,6 +24,7 @@
 
 #include "math/matrix.h"
 #include "phys.h"
+#include "player.h"
 #include "shared.h"
 
 C_BEGIN;
@@ -178,13 +179,20 @@ static void *simulate(void *p) {
 			JPH::EActivation::Activate);
 	ibody.SetLinearVelocity(sphere_id, JPH::Vec3(0.25f, 0.0f, 0.5f));
 
-	physsys->OptimizeBroadPhase();
-
 	JPH::TempAllocatorImpl tempalloc(10 * 1024 * 1024);
 
 	JPH::JobSystemThreadPool jobsys(JPH::cMaxPhysicsJobs,
 			JPH::cMaxPhysicsBarriers,
 			JPH::thread::hardware_concurrency() - 1);
+
+	JPH::ObjectLayerFilter olfilter;
+	JPH::BodyFilter bodyfilter;
+	JPH::ShapeFilter shapefilter;
+
+	struct player ply;
+	player_create(&ply, physsys);
+
+	physsys->OptimizeBroadPhase();
 
 	uint64_t cl_start;
 	unsigned step = 0;
@@ -203,7 +211,11 @@ static void *simulate(void *p) {
 		const JPH::Mat44 trans = ibody.GetWorldTransform(sphere_id);
 		memcpy(modelobj, &trans, sizeof(float) * 16);
 
-		physsys->Update(1.0f / 60.0f, 1, &tempalloc, &jobsys);
+		float delta = 1.0f / 60.0f;
+		physsys->Update(delta, 1, &tempalloc, &jobsys);
+		player_physupdate(&ply, delta, 0.0f, -9.8f, 0.0f, &ibpl,
+				&olfilter, &bodyfilter, &shapefilter,
+				&tempalloc);
 
 		uint64_t duration = SDL_GetTicksNS() - cl_start;
 		const uint64_t idealsleeptime = 16666666;
@@ -216,6 +228,7 @@ static void *simulate(void *p) {
 		nanosleep(&ticksleep, NULL);
 	}
 
+	player_destroy(&ply);
 	delete physsys;
 
 	return NULL;
