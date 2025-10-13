@@ -5,6 +5,7 @@
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
 #include <Jolt/Physics/Character/CharacterVirtual.h>
 
+#include "layers.hpp"
 #include "player.h"
 
 struct player *player_create(struct player *ply, void *p) {
@@ -25,18 +26,36 @@ void player_destroy(struct player *ply) {
 }
 
 /* the things we do for C/C++ interop */
-void player_physupdate(struct player *ply, float delta, float gravx, float
-		gravy, float gravz, const void *bpl, const void *ol, const
-		void *b, const void *s, void *t) {
-	auto bplfilter = static_cast<const JPH::BroadPhaseLayerFilter *>(bpl);
-	auto olfilter = static_cast<const JPH::ObjectLayerFilter *>(ol);
-	auto bfilter = static_cast<const JPH::BodyFilter *>(b);
-	auto sfilter = static_cast<const JPH::ShapeFilter *>(s);
+void player_physupdate(struct player *ply, float delta, const void *s, const void *u, void *t) {
+	auto physsys = static_cast<const JPH::PhysicsSystem *>(s);
 	auto tempalloc = static_cast<JPH::TempAllocator *>(t);
 
 	auto vchar = static_cast<JPH::CharacterVirtual *>(ply->vchar);
-	vchar->Update(delta, JPH::Vec3(gravx, gravy, gravz), *bplfilter,
-			*olfilter, *bfilter, *sfilter, *tempalloc);
+
+	vchar->UpdateGroundVelocity();
+
+	auto velocity = vchar->GetLinearVelocity();
+	auto gravity = physsys->GetGravity();
+
+	auto ground = vchar->GetGroundVelocity();
+	JPH::Vec3 new_velocity;
+	if (vchar->GetGroundState() ==
+			JPH::CharacterVirtual::EGroundState::OnGround)
+		new_velocity = ground;
+	else
+		new_velocity = velocity;
+	new_velocity += gravity * delta;
+
+	vchar->SetLinearVelocity(new_velocity);
+
+	auto bplfilter = physsys->GetDefaultBroadPhaseLayerFilter(
+			Layers::MOVING);
+	auto layfilter = physsys->GetDefaultLayerFilter(Layers::MOVING);
+	auto updatesettings = static_cast<const
+		JPH::CharacterVirtual::ExtendedUpdateSettings *>(u);
+	vchar->ExtendedUpdate(delta, gravity, *updatesettings, bplfilter,
+			layfilter, { }, { }, *tempalloc);
+
 	JPH::RVec3 pos = vchar->GetPosition();
 	warnx("ply pos: %g %g %g", pos.GetX(), pos.GetY(), pos.GetZ());
 }

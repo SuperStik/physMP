@@ -15,9 +15,8 @@ struct player *player_create(struct player *, void *physics_system);
 
 void player_destroy(struct player *);
 
-void player_physupdate(struct player *, float delta, float gravx, float gravy,
-		float gravz, const void *bplfilter, const void *olfilter, const
-		void *bodyfilter, const void *shapefilter, void *tempalloc);
+void player_physupdate(struct player *, float delta, const void *physics_system,
+		const void *extended_update_settings, void *tempalloc);
 
 C_END;
 
