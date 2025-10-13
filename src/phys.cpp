@@ -31,6 +31,7 @@
 C_BEGIN;
 extern char done;
 gvec(float,4) modelobj[4];
+struct player localplayer;
 C_END;
 
 using namespace JPH::literals;
@@ -110,8 +111,7 @@ static void *simulate(void *p) {
 
 	JPH::CharacterVirtual::ExtendedUpdateSettings updatesettings;
 
-	struct player ply;
-	player_create(&ply, physsys);
+	struct player *ply = player_create(&localplayer, physsys);
 
 	physsys->OptimizeBroadPhase();
 
@@ -134,7 +134,7 @@ static void *simulate(void *p) {
 
 		float delta = 1.0f / 60.0f;
 		physsys->Update(delta, 1, &tempalloc, &jobsys);
-		player_physupdate(&ply, delta, physsys, &updatesettings,
+		player_physupdate(ply, delta, physsys, &updatesettings,
 				&tempalloc);
 
 		uint64_t duration = SDL_GetTicksNS() - cl_start;
@@ -148,7 +148,7 @@ static void *simulate(void *p) {
 		nanosleep(&ticksleep, NULL);
 	}
 
-	player_destroy(&ply);
+	player_destroy(ply);
 	delete physsys;
 
 	return NULL;

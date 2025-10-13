@@ -133,25 +133,18 @@ void MTL_main(void) {
 
 	rebuildprojs(&matrices, (float)WIDTH, (float)HEIGHT);
 	SDL_AddEventWatch(windowresize, device);
+	
+	localplayer.transform = matrices.view;
 
 	pthread_t rthread;
 	pthread_create(&rthread, NULL, render, layer);
 
-	float pitch = 0.0f;
-	float yaw = 0.0f;
 	char occluded = 0;
 	SDL_Event ev;
 	while (!done && SDL_WaitEvent(&ev)) {
 		switch (ev.type) {
 			case SDL_EVENT_MOUSE_MOTION:
-				pitch -= ev.motion.yrel * 0.1f;
-				yaw -= ev.motion.xrel * 0.1f;
-				if (fabsf(pitch) > 90.0f)
-					pitch = copysignf(90.0f, pitch);
-
-				gvec(float,4) rot = ang_eulnoroll2quat(pitch,
-						yaw);
-				mat_getrotate(matrices.view, rot);
+				player_turn(&localplayer, ev.motion.xrel, ev.motion.yrel);
 				break;
 			case SDL_EVENT_QUIT:
 				done = 1;
