@@ -19,7 +19,8 @@ struct player *player_create(struct player *ply, void *p) {
 	plysettings.mShape = new JPH::CapsuleShape();
 
 	auto vchar = new JPH::CharacterVirtual(&plysettings,
-			JPH::Vec3(0.0f, -64.0f, 0.0f), JPH::Quat::sIdentity(), physsys);
+			JPH::Vec3(0.0f, 16.0f, 0.0f), JPH::Quat::sIdentity(),
+			physsys);
 
 	ply->vchar = static_cast<void *>(vchar);
 	ply->eyeangles = {0.0f, 0.0f};
@@ -58,7 +59,7 @@ void player_physupdate(struct player *ply, float delta, const void *s, const voi
 		new_velocity = ground;
 	else
 		new_velocity = velocity;
-	new_velocity -= gravity * delta;
+	new_velocity += gravity * delta;
 
 	vchar->SetLinearVelocity(new_velocity);
 
@@ -73,7 +74,6 @@ void player_physupdate(struct player *ply, float delta, const void *s, const voi
 	updatetransform(ply);
 
 	JPH::RVec3 pos = vchar->GetPosition();
-	//warnx("ply pos: %g %g %g", pos.GetX(), pos.GetY(), pos.GetZ());
 }
 
 static void updatetransform(struct player *ply) {
@@ -88,6 +88,7 @@ static void updatetransform(struct player *ply) {
 		JPH::Mat44 jph;
 	} transform;
 	transform.jph = vchar->GetWorldTransform();
+	transform.jph.SetTranslation(-transform.jph.GetTranslation());
 
 	gvec(float,4) rotate[4];
 	mat_getrotate(rotate, rot);
