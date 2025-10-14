@@ -96,7 +96,7 @@ static void *simulate(void *p) {
 	JPH::Body *floor = ibody.CreateBody(floor_settings);
 	ibody.AddBody(floor->GetID(), JPH::EActivation::DontActivate);
 
-	JPH::BodyCreationSettings sphere_settings(new JPH::SphereShape(0.5f),
+	JPH::BodyCreationSettings sphere_settings(new JPH::SphereShape(0.25f),
 			JPH::RVec3(0.0_r, 2.0_r, 0.0_r), JPH::Quat::sIdentity(),
 			JPH::EMotionType::Dynamic, Layers::MOVING);
 	JPH::BodyID sphere_id = ibody.CreateAndAddBody(sphere_settings,

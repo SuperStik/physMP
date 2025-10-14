@@ -19,7 +19,7 @@ struct player *player_create(struct player *ply, void *p) {
 	plysettings.mShape = new JPH::CapsuleShape();
 
 	auto vchar = new JPH::CharacterVirtual(&plysettings,
-			JPH::Vec3(0.0f, 16.0f, 0.0f), JPH::Quat::sIdentity(),
+			JPH::Vec3(0.0f, 0.0f, 0.0f), JPH::Quat::sIdentity(),
 			physsys);
 
 	ply->vchar = static_cast<void *>(vchar);
