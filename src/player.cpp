@@ -37,6 +37,8 @@ void player_turn(struct player *ply, float dx, float dy) {
 	if (fabsf(ply->eyeangles[0]) > 90.0f)
 		ply->eyeangles[0] = copysignf(90.0f, ply->eyeangles[0]);
 
+	ply->eyeangles[1] -= 360.0f * floorf(ply->eyeangles[1] / 360.0f);
+
 	updatetransform(ply);
 }
 
@@ -94,8 +96,6 @@ static void updatetransform(struct player *ply) {
 	mat_getrotate(rotate, rot);
 
 	gvec(float,4) *viewtransform = ply->transform;
-	if (__builtin_expect(viewtransform != nullptr, 1)) {
+	if (__builtin_expect(viewtransform != nullptr, 1))
 		mat_mul(transform.vec, rotate, viewtransform);
-	}
-
 }
