@@ -8,6 +8,7 @@ C_BEGIN;
 
 struct player {
 	gvec(float,2) eyeangles;
+	gvec(float,2) move;
 	void *vchar;
 	gvec(float,4) *transform;
 };
