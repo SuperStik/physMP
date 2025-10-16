@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 
+#include "../events.h"
 #include "../gutl.h"
 #include "../math/angle.h"
 #include "../math/matrix.h"
@@ -144,10 +145,10 @@ void MTL_main(void) {
 	while (!done && SDL_WaitEvent(&ev)) {
 		switch (ev.type) {
 			case SDL_EVENT_KEY_DOWN:
-				warnx("keydown %u", ev.key.scancode);
+				ev_key_down(window, &ev.key);
 				break;
 			case SDL_EVENT_KEY_UP:
-				warnx("keyup %u", ev.key.scancode);
+				ev_key_up(window, &ev.key);
 				break;
 			case SDL_EVENT_MOUSE_MOTION:
 				player_turn(&localplayer, ev.motion.xrel, ev.motion.yrel);
