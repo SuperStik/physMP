@@ -77,8 +77,6 @@ void player_physupdate(struct player *ply, float delta, const void *s, const voi
 			layfilter, { }, { }, *tempalloc);
 
 	updatetransform(ply);
-
-	JPH::RVec3 pos = vchar->GetPosition();
 }
 
 static void updatetransform(struct player *ply) {
