@@ -1,6 +1,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H 1
 
+#include <controller.h>
 #include <cppheader.h>
 #include <math/vector.h>
 
@@ -8,9 +9,9 @@ C_BEGIN;
 
 struct player {
 	gvec(float,2) eyeangles;
-	gvec(float,2) move;
 	void *vchar;
 	gvec(float,4) *transform;
+	struct control controller;
 };
 
 struct player *player_create(struct player *, void *physics_system);

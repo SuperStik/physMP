@@ -19,3 +19,13 @@ void ctrl_destroy(struct control *ctrl) {
 
 	pthread_mutex_destroy(&(ctrl->lock));
 }
+
+void ctrl_keydown(struct control *ctrl, SDL_KeyboardEvent *key) {
+	pthread_mutex_lock(&(ctrl->lock));
+	pthread_mutex_unlock(&(ctrl->lock));
+}
+
+void ctrl_keyup(struct control *ctrl, SDL_KeyboardEvent *key) {
+	pthread_mutex_lock(&(ctrl->lock));
+	pthread_mutex_unlock(&(ctrl->lock));
+}

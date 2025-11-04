@@ -22,6 +22,8 @@ struct player *player_create(struct player *ply, void *p) {
 			JPH::Vec3(0.0f, 0.0f, 0.0f), JPH::Quat::sIdentity(),
 			physsys);
 
+	ctrl_create(&(ply->controller));
+
 	ply->vchar = static_cast<void *>(vchar);
 	ply->eyeangles = {0.0f, 0.0f};
 	return ply;
@@ -29,6 +31,7 @@ struct player *player_create(struct player *ply, void *p) {
 
 void player_destroy(struct player *ply) {
 	delete static_cast<JPH::CharacterVirtual *>(ply->vchar);
+	ctrl_destroy(&(ply->controller));
 }
 
 void player_turn(struct player *ply, float dx, float dy) {
