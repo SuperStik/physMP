@@ -1,3 +1,4 @@
+#include <clocale>
 #include <cstdio>
 #include <err.h>
 
@@ -11,6 +12,8 @@ char done = 0;
 C_END;
 
 int main(void) {
+	setlocale(LC_ALL, "");
+
 	char initialized = SDL_Init(SDL_INIT_VIDEO);
 	if (!initialized)
 		errx(1, "%s", SDL_GetError());
