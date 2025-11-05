@@ -16,12 +16,17 @@ C_BEGIN;
 
 struct control {
 	pthread_mutex_t lock;
+	gvec(float,2) move_nonorm;
 	gvec(float,2) move;
 };
 
 struct control *ctrl_create(struct control *);
 
 void ctrl_destroy(struct control *);
+
+void ctrl_keydown(struct control *ctrl, SDL_KeyboardEvent *key);
+
+void ctrl_keyup(struct control *ctrl, SDL_KeyboardEvent *key);
 
 C_END;
 
