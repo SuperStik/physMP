@@ -17,8 +17,8 @@ SHDR_SRC := ${SRC_DIR}/metal/shaders
 SHDR_METAL := $(wildcard ${SHDR_SRC}/*.metal)
 
 OBJ_DIR = ${OUT_DIR}/objects
-OBJ_C = $(patsubst src/%.c,${OBJ_DIR}/%.o,${SRC})
-OBJ = $(patsubst src/%.m,${OBJ_DIR}/%.o,${OBJ_C})
+OBJ_C = $(patsubst src/%.c,${OBJ_DIR}/%.c.o,${SRC})
+OBJ = $(patsubst src/%.m,${OBJ_DIR}/%.m.o,${OBJ_C})
 OBJ_CXX = $(patsubst src/%.cpp,${OBJ_DIR}/%.cxx.o,${SRC_CXX})
 OBJ_DIRS = $(patsubst ${SRC_DIR}/%,${OBJ_DIR}/%,${SRC_DIRS})
 RES_DIR = ${OUT_DIR}/resources
@@ -55,13 +55,13 @@ all: ${OBJ_DIRS} ${OUT} ${OUT_DIR}/default.metallib ${RES_OUT}
 ${OUT}: ${OBJ} ${OBJ_CXX}
 	${CXX} $^ -O$O -o $@ ${LIB_PATH_FL} ${LIB_FL} ${FRAMEWORK_FL} ${CCFLAGS}
 
-${OBJ_DIR}/%.o: ${SRC_DIR}/%.c ${OBJ_DIRS}
+${OBJ_DIR}/%.c.o: ${SRC_DIR}/%.c ${OBJ_DIRS}
 	${CC} $< -O$O -o $@ -c ${INCL_PATH_FL} ${CCFLAGS}
 
 ${OBJ_DIR}/%.cxx.o: ${SRC_DIR}/%.cpp ${OBJ_DIRS} ${OUT_JOLT}
 	${CXX} $< -O$O -o $@ -c ${INCL_PATH_FL} ${CCFLAGS}
 
-${OBJ_DIR}/%.o: ${SRC_DIR}/%.m ${OBJ_DIRS}
+${OBJ_DIR}/%.m.o: ${SRC_DIR}/%.m ${OBJ_DIRS}
 	${CC} $< -O$O -o $@ -c ${INCL_PATH_FL} ${CCFLAGS}
 
 ${OBJ_DIR}/%.air: ${SHDR_SRC}/%.metal ${OBJ_DIR}
