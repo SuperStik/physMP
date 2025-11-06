@@ -115,14 +115,11 @@ static void *simulate(void *p) {
 	physsys->OptimizeBroadPhase();
 
 	uint64_t cl_start;
-	unsigned step = 0;
 
 #ifdef __APPLE__
 	pthread_setname_np("physMP.physics-thread");
 #endif /* __APPLE__ */
 	while (ibody.IsActive(sphere_id) && !done) {
-		++step;
-
 		cl_start = SDL_GetTicksNS();
 
 		JPH::RVec3 pos = ibody.GetCenterOfMassPosition(sphere_id);
