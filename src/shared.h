@@ -2,8 +2,8 @@
 #define SHARED_H 1
 
 #include <cppheader.h>
+#include <entity/player.h>
 #include <math/vector.h>
-#include <player.h>
 
 C_BEGIN;
 extern gvec(float,4) modelobj[4];

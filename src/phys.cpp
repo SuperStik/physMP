@@ -25,7 +25,6 @@
 #include "layers.hpp"
 #include "math/matrix.h"
 #include "phys.h"
-#include "player.h"
 #include "shared.h"
 
 C_BEGIN;
