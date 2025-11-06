@@ -24,6 +24,8 @@ struct control *ctrl_create(struct control *);
 
 void ctrl_destroy(struct control *);
 
+gvec(float,2) ctrl_getmove(struct control *ctrl);
+
 void ctrl_keydown(struct control *ctrl, SDL_KeyboardEvent *key);
 
 void ctrl_keyup(struct control *ctrl, SDL_KeyboardEvent *key);

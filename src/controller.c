@@ -21,6 +21,14 @@ void ctrl_destroy(struct control *ctrl) {
 	pthread_mutex_destroy(&(ctrl->lock));
 }
 
+gvec(float,2) ctrl_getmove(struct control *ctrl) {
+	pthread_mutex_lock(&(ctrl->lock));
+	gvec(float,2) move = ctrl->move;
+	pthread_mutex_unlock(&(ctrl->lock));
+
+	return move;
+}
+
 void ctrl_keydown(struct control *ctrl, SDL_KeyboardEvent *key) {
 	pthread_mutex_lock(&(ctrl->lock));
 
@@ -51,8 +59,6 @@ void ctrl_keydown(struct control *ctrl, SDL_KeyboardEvent *key) {
 		move /= sqrtf(lensqr);
 
 	ctrl->move = move;
-
-	warnx("(%g,%g)", move[0], move[1]);
 
 donothing:
 	pthread_mutex_unlock(&(ctrl->lock));
@@ -88,8 +94,6 @@ void ctrl_keyup(struct control *ctrl, SDL_KeyboardEvent *key) {
 		move /= sqrtf(lensqr);
 
 	ctrl->move = move;
-
-	warnx("(%g,%g)", move[0], move[1]);
 
 donothing:
 	pthread_mutex_unlock(&(ctrl->lock));

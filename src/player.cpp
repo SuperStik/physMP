@@ -64,7 +64,10 @@ void player_physupdate(struct player *ply, float delta, const void *s, const voi
 		new_velocity = ground;
 	else
 		new_velocity = velocity;
-	new_velocity += gravity * delta;
+
+	gvec(float,2) move = ctrl_getmove(&(ply->controller)) * 128.0f;
+	JPH::Vec3 move_vel(move[0], 0.0f, move[1]);
+	new_velocity += (gravity + move_vel) * delta;
 
 	vchar->SetLinearVelocity(new_velocity);
 
