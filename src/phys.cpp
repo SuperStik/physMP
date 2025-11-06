@@ -122,13 +122,10 @@ static void *simulate(void *p) {
 	while (ibody.IsActive(sphere_id) && !done) {
 		cl_start = SDL_GetTicksNS();
 
-		JPH::RVec3 pos = ibody.GetCenterOfMassPosition(sphere_id);
-		JPH::Vec3 vel = ibody.GetLinearVelocity(sphere_id);
-
 		const JPH::Mat44 trans = ibody.GetWorldTransform(sphere_id);
 		memcpy(modelobj, &trans, sizeof(float) * 16);
 
-		float delta = 1.0f / 60.0f;
+		const float delta = 1.0f / 60.0f;
 		physsys->Update(delta, 1, &tempalloc, &jobsys);
 		player_physupdate(ply, delta, physsys, &updatesettings,
 				&tempalloc);
