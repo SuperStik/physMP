@@ -3,6 +3,10 @@
 
 #include "controller.h"
 
+static gvec(float,2) scan2move(SDL_Scancode);
+
+static void movectrl(struct control *, gvec(float,2) move);
+
 struct control *ctrl_create(struct control *ctrl) {
 	if (__builtin_expect(ctrl == NULL, 0))
 		return NULL;
@@ -30,62 +34,49 @@ gvec(float,2) ctrl_getmove(struct control *ctrl) {
 }
 
 void ctrl_keydown(struct control *ctrl, SDL_KeyboardEvent *key) {
-	pthread_mutex_lock(&(ctrl->lock));
+	gvec(float,2) move = scan2move(key->scancode);
+	if (move[0] == 0.0f && move[1] == 0.0f)
+		return;
 
-	gvec(float,2) move = ctrl->move_nonorm;
-
-	switch(key->scancode) {
-		case SDL_SCANCODE_W:
-			++move[1];
-			break;
-		case SDL_SCANCODE_S:
-			--move[1];
-			break;
-		case SDL_SCANCODE_A:
-			--move[0];
-			break;
-		case SDL_SCANCODE_D:
-			++move[0];
-			break;
-		default:
-			goto donothing;
-	}
-
-	ctrl->move_nonorm = move;
-	gvec(float,2) movesqr = move * move;
-
-	float lensqr = movesqr[0] + movesqr[1];
-	if (lensqr > 1.0f)
-		move /= sqrtf(lensqr);
-
-	ctrl->move = move;
-
-donothing:
-	pthread_mutex_unlock(&(ctrl->lock));
+	movectrl(ctrl, move);
 }
 
 void ctrl_keyup(struct control *ctrl, SDL_KeyboardEvent *key) {
-	pthread_mutex_lock(&(ctrl->lock));
+	gvec(float,2) move = scan2move(key->scancode);
+	if (move[0] == 0.0f && move[1] == 0.0f)
+		return;
 
-	gvec(float,2) move = ctrl->move_nonorm;
+	move = -move;
 
-	switch(key->scancode) {
+	movectrl(ctrl, move);
+}
+
+static gvec(float,2) scan2move(SDL_Scancode scan) {
+	gvec(float,2) move = {0.0f, 0.0f};
+	switch(scan) {
 		case SDL_SCANCODE_W:
-			--move[1];
+			move[1] = 1.0f;
 			break;
 		case SDL_SCANCODE_S:
-			++move[1];
+			move[1] = -1.0f;
 			break;
 		case SDL_SCANCODE_A:
-			++move[0];
+			move[0] = -1.0f;
 			break;
 		case SDL_SCANCODE_D:
-			--move[0];
+			move[0] = 1.0f;
 			break;
 		default:
-			goto donothing;
+			break;
 	}
 
+	return move;
+}
+
+static void movectrl(struct control *ctrl, gvec(float,2) move) {
+	pthread_mutex_lock(&(ctrl->lock));
+
+	move += ctrl->move_nonorm;
 	ctrl->move_nonorm = move;
 	gvec(float,2) movesqr = move * move;
 
@@ -95,6 +86,5 @@ void ctrl_keyup(struct control *ctrl, SDL_KeyboardEvent *key) {
 
 	ctrl->move = move;
 
-donothing:
 	pthread_mutex_unlock(&(ctrl->lock));
 }
