@@ -119,7 +119,7 @@ static void *simulate(void *p) {
 #ifdef __APPLE__
 	pthread_setname_np("physMP.physics-thread");
 #endif /* __APPLE__ */
-	while (ibody.IsActive(sphere_id) && !done) {
+	while (!done) {
 		cl_start = SDL_GetTicksNS();
 
 		const JPH::Mat44 trans = ibody.GetWorldTransform(sphere_id);
