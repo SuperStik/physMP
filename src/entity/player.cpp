@@ -66,7 +66,15 @@ void player_physupdate(struct player *ply, float delta, const void *s, const voi
 		new_velocity = velocity;
 
 	gvec(float,2) move = ctrl_getmove(&(ply->controller)) * 128.0f;
-	JPH::Vec3 move_vel(move[0], 0.0f, move[1]);
+	float yaw = ply->eyeangles[1];
+
+	float siny, cosy;
+
+	SINCOSPIf(yaw / -180.0f, &siny, &cosy);
+
+	float xrel = move[0] * cosy + move[1] * siny;
+	float zrel = move[1] * cosy - move[0] * siny;
+	JPH::Vec3 move_vel(xrel, 0.0f, zrel);
 	new_velocity += (gravity + move_vel) * delta;
 
 	vchar->SetLinearVelocity(new_velocity);
