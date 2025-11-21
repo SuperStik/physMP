@@ -15,7 +15,7 @@
 C_BEGIN;
 
 struct control {
-	pthread_mutex_t lock;
+	pthread_rwlock_t lock;
 	gvec(float,2) move_nonorm;
 	gvec(float,2) move;
 };

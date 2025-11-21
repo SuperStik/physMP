@@ -12,7 +12,7 @@ struct control *ctrl_create(struct control *ctrl) {
 		return NULL;
 
 	ctrl->move = (gvec(float,2)){0.0f, 0.0f};
-	if (__builtin_expect(pthread_mutex_init(&(ctrl->lock), NULL), 0))
+	if (__builtin_expect(pthread_rwlock_init(&(ctrl->lock), NULL), 0))
 		ctrl = NULL;
 
 	return ctrl;
@@ -22,13 +22,13 @@ void ctrl_destroy(struct control *ctrl) {
 	if (__builtin_expect(ctrl == NULL, 0))
 		return;
 
-	pthread_mutex_destroy(&(ctrl->lock));
+	pthread_rwlock_destroy(&(ctrl->lock));
 }
 
 gvec(float,2) ctrl_getmove(struct control *ctrl) {
-	pthread_mutex_lock(&(ctrl->lock));
+	pthread_rwlock_rdlock(&(ctrl->lock));
 	gvec(float,2) move = ctrl->move;
-	pthread_mutex_unlock(&(ctrl->lock));
+	pthread_rwlock_unlock(&(ctrl->lock));
 
 	return move;
 }
@@ -74,7 +74,7 @@ static gvec(float,2) scan2move(SDL_Scancode scan) {
 }
 
 static void movectrl(struct control *ctrl, gvec(float,2) move) {
-	pthread_mutex_lock(&(ctrl->lock));
+	pthread_rwlock_wrlock(&(ctrl->lock));
 
 	move += ctrl->move_nonorm;
 	ctrl->move_nonorm = move;
@@ -86,5 +86,5 @@ static void movectrl(struct control *ctrl, gvec(float,2) move) {
 
 	ctrl->move = move;
 
-	pthread_mutex_unlock(&(ctrl->lock));
+	pthread_rwlock_unlock(&(ctrl->lock));
 }
