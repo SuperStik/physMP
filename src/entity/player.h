@@ -12,7 +12,10 @@ struct player {
 	void *vchar;
 	gvec(float,4) *transform;
 	struct control controller;
+	float eyepos[3];
 };
+
+extern struct player localplayer;
 
 struct player *player_create(struct player *, void *physics_system);
 

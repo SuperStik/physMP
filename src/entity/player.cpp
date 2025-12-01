@@ -25,7 +25,11 @@ struct player *player_create(struct player *ply, void *p) {
 	ctrl_create(&(ply->controller));
 
 	ply->vchar = static_cast<void *>(vchar);
+
 	ply->eyeangles = {0.0f, 0.0f};
+	for (int i = 0; i < 3; ++i)
+		ply->eyepos[i] = 0.0f;
+
 	return ply;
 }
 
@@ -88,6 +92,10 @@ void player_physupdate(struct player *ply, float delta, const void *s, const voi
 			layfilter, { }, { }, *tempalloc);
 
 	updatetransform(ply);
+	JPH::RVec3 eyepos = vchar->GetPosition();
+	ply->eyepos[0] = eyepos.GetX();
+	ply->eyepos[1] = eyepos.GetY();
+	ply->eyepos[2] = eyepos.GetZ();
 }
 
 static void updatetransform(struct player *ply) {

@@ -325,9 +325,8 @@ static void *render(void *l) {
 		};
 		[enc setFragmentBytes:&light length:sizeof(light) atIndex:0];
 
-		float viewpos[3] = {0.0f, 0.0f, 0.0f};
-		[enc setFragmentBytes:&viewpos
-			       length:sizeof(viewpos)
+		[enc setFragmentBytes:localplayer.eyepos
+			       length:sizeof(float) * 3
 			      atIndex:1];
 
 		[enc drawIndexedPrimitives:MTLPrimitiveTypeTriangle

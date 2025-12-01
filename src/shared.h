@@ -7,7 +7,6 @@
 
 C_BEGIN;
 extern gvec(float,4) modelobj[4];
-extern struct player localplayer;
 C_END;
 
 #endif /* SHARED_H */
