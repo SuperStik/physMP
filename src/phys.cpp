@@ -80,8 +80,8 @@ static void *simulate(void *p) {
 
 	JPH::BodyInterface &ibody = physsys->GetBodyInterfaceNoLock();
 
-	JPH::BoxShapeSettings floor_shape_settings(JPH::Vec3(256.0f, 1.0f,
-				256.0f));
+	JPH::BoxShapeSettings floor_shape_settings(JPH::Vec3(128.0f, 1.0f,
+				128.0f));
 	floor_shape_settings.SetEmbedded();
 
 	JPH::ShapeSettings::ShapeResult floor_shape_result =
