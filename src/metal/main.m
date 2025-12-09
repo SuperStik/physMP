@@ -27,11 +27,6 @@ struct matrices {
 	gvec(float,4) persp[4];
 };
 
-struct vertdata {
-	float pos[3];
-	float normal[3];
-};
-
 struct model {
 	gvec(float,4) model[4];
 	gvec(float,4) normal[3];
@@ -220,7 +215,7 @@ static void *render(void *l) {
 		-128.0f, -4.0f, -128.0f
 	};
 
-	const struct vertdata cube[] = {
+	const struct object_vertdata cube[] = {
 		{{-0.5f, -0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}},
 		{{-0.5f, -0.5f, 0.5f}, {-1.0f, 0.0f, 0.0f}},
 		{{-0.5f, 0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}},

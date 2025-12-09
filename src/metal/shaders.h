@@ -8,6 +8,11 @@ struct shaders {
 	id object;
 };
 
+struct object_vertdata {
+	float pos[3];
+	float normal[3];
+};
+
 struct shaders *shdr_load(struct shaders *, id device);
 
 void shdr_release(struct shaders *);

@@ -12,9 +12,16 @@ struct model {
 	float3x3 normal;
 };
 
+struct lightdata {
+	packed_float3 position;
+	packed_float3 ambient;
+	packed_float3 diffuse;
+	packed_float3 specular;
+};
+
 struct vertdata {
-	packed_float3 pos;
-	packed_float3 normal;
+	float3 pos [[attribute(0)]];
+	float3 normal [[attribute(1)]];
 };
 
 struct fragdata {
@@ -23,18 +30,9 @@ struct fragdata {
 	float3 fragpos;
 };
 
-struct lightdata {
-	packed_float3 position;
-	packed_float3 ambient;
-	packed_float3 diffuse;
-	packed_float3 specular;
-};
-
 vertex
-fragdata vertObject(uint vertexID [[vertex_id]], constant matrixdata *mats
-		[[buffer(0)]], constant vertdata *verts [[buffer(15)]], constant
-		model *mdl [[buffer(1)]]) {
-	vertdata vert = verts[vertexID];
+fragdata vertObject(constant matrixdata *mats [[buffer(0)]], constant model *mdl
+		[[buffer(1)]], vertdata vert [[stage_in]]) {
 	float4 pos = mdl->model * float4(vert.pos, 1.0f);
 	float4 endpos = mats->persp * mats->view * pos;
 
