@@ -191,12 +191,13 @@ static void *render(void *l) {
 	depth.loadAction = MTLLoadActionClear;
 	depth.storeAction = MTLStoreActionDontCare;
 
-	MTLDepthStencilDescriptor *dsdesc = [MTLDepthStencilDescriptor new];
-	dsdesc.depthCompareFunction = MTLCompareFunctionLessEqual;
-	dsdesc.depthWriteEnabled = true;
-	id<MTLDepthStencilState> depthstencil = [device
-		newDepthStencilStateWithDescriptor:dsdesc];
-	[dsdesc release];
+	MTLDepthStencilDescriptor *d_desc = [MTLDepthStencilDescriptor new];
+	d_desc.depthCompareFunction = MTLCompareFunctionLessEqual;
+	d_desc.depthWriteEnabled = true;
+	d_desc.label = @"depth.state.lew";
+	id<MTLDepthStencilState> d_state = [device
+		newDepthStencilStateWithDescriptor:d_desc];
+	[d_desc release];
 
 	struct shaders shdr;
 	shdr_load(&shdr, device);
@@ -287,7 +288,7 @@ static void *render(void *l) {
 
 		[enc setCullMode:MTLCullModeBack];
 
-		[enc setDepthStencilState:depthstencil];
+		[enc setDepthStencilState:d_state];
 
 		[enc setVertexBytes:&matrices
 			     length:sizeof(matrices)
@@ -343,7 +344,7 @@ static void *render(void *l) {
 	}
 
 	shdr_release(&shdr);
-	[depthstencil release];
+	[d_state release];
 	[cube_buf release];
 	[cubeinds_buf release];
 	[cmdq release];
