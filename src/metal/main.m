@@ -48,6 +48,7 @@ static pthread_mutex_t depthmut = PTHREAD_MUTEX_INITIALIZER;
 static id<MTLTexture> depthtex;
 
 static pthread_mutex_t occlmut = PTHREAD_MUTEX_INITIALIZER;
+static char occluded = 0;
 
 static void *render(void *l);
 
@@ -128,7 +129,6 @@ void MTL_main(void) {
 	pthread_t rthread;
 	pthread_create(&rthread, NULL, render, layer);
 
-	char occluded = 0;
 	SDL_Event ev;
 	while (!done && SDL_WaitEvent(&ev)) {
 		switch (ev.type) {
@@ -272,6 +272,12 @@ static void *render(void *l) {
 			   options:MTLResourceCPUCacheModeWriteCombined];
 
 	while (!done) {
+		/* pause render thread if window is occluded */
+		if (__builtin_expect(occluded, 0)) {
+			pthread_mutex_lock(&occlmut);
+			pthread_mutex_unlock(&occlmut);
+		}
+
 		ARP_PUSH();
 
 		id<CAMetalDrawable> drawable = [layer nextDrawable];
@@ -339,10 +345,6 @@ static void *render(void *l) {
 		[cmdb commit];
 
 		ARP_POP();
-
-		/* pause render thread when window is occluded */
-		pthread_mutex_lock(&occlmut);
-		pthread_mutex_unlock(&occlmut);
 	}
 
 	shdr_release(&shdr);
