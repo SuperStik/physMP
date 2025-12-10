@@ -271,15 +271,22 @@ static void *render(void *l) {
 			    length:sizeof(cube)
 			   options:MTLResourceCPUCacheModeWriteCombined];
 
+	id<MTLTexture> curdepthtex = nil;
+
 	while (!done) {
 		ARP_PUSH();
 
 		id<CAMetalDrawable> drawable = [layer nextDrawable];
 		color.texture = drawable.texture;
 
-		pthread_mutex_lock(&depthmut);
-		depth.texture = depthtex;
-		pthread_mutex_unlock(&depthmut);
+		if (__builtin_expect(curdepthtex != depthtex, 0)) {
+			[curdepthtex release];
+			pthread_mutex_lock(&depthmut);
+			curdepthtex = depthtex;
+			[curdepthtex retain];
+			depth.texture = curdepthtex;
+			pthread_mutex_unlock(&depthmut);
+		}
 
 		id<MTLCommandBuffer> cmdb = [cmdq commandBuffer];
 
@@ -344,6 +351,7 @@ static void *render(void *l) {
 	}
 
 	shdr_release(&shdr);
+	[curdepthtex release];
 	[d_state release];
 	[cube_buf release];
 	[cubeinds_buf release];
