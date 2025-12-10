@@ -261,15 +261,18 @@ static void *render(void *l) {
 		22, 21, 23
 	};
 
-	id<MTLBuffer> cubeinds_buf = [device
-		newBufferWithBytes:cubeinds
-			    length:sizeof(cubeinds)
-			   options:MTLResourceCPUCacheModeWriteCombined];
+	const MTLResourceOptions opts = MTLResourceCPUCacheModeWriteCombined |
+		MTLResourceHazardTrackingModeUntracked;
 
-	id<MTLBuffer> cube_buf = [device
-		newBufferWithBytes:cube
-			    length:sizeof(cube)
-			   options:MTLResourceCPUCacheModeWriteCombined];
+	id<MTLBuffer> buf_cubeind = [device newBufferWithBytes:cubeinds
+							length:sizeof(cubeinds)
+						       options:opts];
+	buf_cubeind.label = @"buffer.cube.indices";
+
+	id<MTLBuffer> buf_cube = [device newBufferWithBytes:cube
+						     length:sizeof(cube)
+						    options:opts];
+	buf_cube.label = @"buffer.cube.vertex_attributes";
 
 	while (!done) {
 		/* pause render thread if window is occluded */
@@ -312,7 +315,7 @@ static void *render(void *l) {
 		[enc setVertexBytes:&model
 			     length:sizeof(model)
 			    atIndex:1];
-		[enc setVertexBuffer:cube_buf offset:0 atIndex:15];
+		[enc setVertexBuffer:buf_cube offset:0 atIndex:15];
 
 		const struct lightdata light = {
 			{0.0f, 0.0f, 0.0f},
@@ -329,7 +332,7 @@ static void *render(void *l) {
 		[enc drawIndexedPrimitives:MTLPrimitiveTypeTriangle
 				indexCount:36
 				 indexType:MTLIndexTypeUInt16
-			       indexBuffer:cubeinds_buf
+			       indexBuffer:buf_cubeind
 			 indexBufferOffset:0];
 
 		[enc setRenderPipelineState:shdr.level];
@@ -349,8 +352,8 @@ static void *render(void *l) {
 
 	shdr_release(&shdr);
 	[d_state release];
-	[cube_buf release];
-	[cubeinds_buf release];
+	[buf_cube release];
+	[buf_cubeind release];
 	[cmdq release];
 
 	return NULL;
