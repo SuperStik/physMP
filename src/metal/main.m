@@ -280,10 +280,8 @@ static void *render(void *l) {
 		color.texture = drawable.texture;
 
 		if (__builtin_expect(curdepthtex != depthtex, 0)) {
-			[curdepthtex release];
 			pthread_mutex_lock(&depthmut);
 			curdepthtex = depthtex;
-			[curdepthtex retain];
 			depth.texture = curdepthtex;
 			pthread_mutex_unlock(&depthmut);
 		}
@@ -351,7 +349,6 @@ static void *render(void *l) {
 	}
 
 	shdr_release(&shdr);
-	[curdepthtex release];
 	[d_state release];
 	[cube_buf release];
 	[cubeinds_buf release];
