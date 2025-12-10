@@ -271,18 +271,15 @@ static void *render(void *l) {
 			    length:sizeof(cube)
 			   options:MTLResourceCPUCacheModeWriteCombined];
 
-	id<MTLTexture> curdepthtex = nil;
-
 	while (!done) {
 		ARP_PUSH();
 
 		id<CAMetalDrawable> drawable = [layer nextDrawable];
 		color.texture = drawable.texture;
 
-		if (__builtin_expect(curdepthtex != depthtex, 0)) {
+		if (__builtin_expect(depth.texture != depthtex, 0)) {
 			pthread_mutex_lock(&depthmut);
-			curdepthtex = depthtex;
-			depth.texture = curdepthtex;
+			depth.texture = depthtex;
 			pthread_mutex_unlock(&depthmut);
 		}
 
