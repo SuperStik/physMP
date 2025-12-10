@@ -30,6 +30,7 @@ struct shaders *shdr_load(struct shaders *shdr, id device) {
 	desc.fragmentFunction = fraglevel;
 	[fraglevel release];
 	desc.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
+	desc.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
 
 	bufs = desc.vertexBuffers;
 	bufs[0].mutability = MTLMutabilityImmutable;
@@ -57,6 +58,7 @@ struct shaders *shdr_load(struct shaders *shdr, id device) {
 	desc.fragmentFunction = fragobject;
 	[fragobject release];
 	desc.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
+	desc.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
 
 	bufs = desc.vertexBuffers;
 	bufs[0].mutability = MTLMutabilityImmutable;
