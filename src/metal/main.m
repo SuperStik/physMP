@@ -59,7 +59,7 @@ static void rebuilddepth(id<MTLDevice>, int32_t width, int32_t height);
 static bool windowresize(void *userdata, SDL_Event *);
 
 void MTL_main(void) {
-	SDL_Window *window = SDL_CreateWindow("unbloCked", WIDTH, HEIGHT,
+	SDL_Window *window = SDL_CreateWindow("physMP", WIDTH, HEIGHT,
 			SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY |
 			SDL_WINDOW_METAL);
 	if (window == NULL)
