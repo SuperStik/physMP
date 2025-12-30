@@ -30,6 +30,7 @@ struct matrices {
 struct model {
 	gvec(float,4) model[4];
 	gvec(float,4) normal[3];
+	float viewpos[3];
 };
 
 struct lightdata {
@@ -312,6 +313,9 @@ static void *render(void *l) {
 		gvec(float,4) modelinv[4];
 		mat_inverse_t(model.model, modelinv);
 		memcpy(model.normal, modelinv, sizeof(float) * 12);
+		model.viewpos[0] = localplayer.eyepos[0];
+		model.viewpos[1] = localplayer.eyepos[1];
+		model.viewpos[2] = localplayer.eyepos[2];
 		[enc setVertexBytes:&model
 			     length:sizeof(model)
 			    atIndex:1];
@@ -324,10 +328,6 @@ static void *render(void *l) {
 			{1.0f16, 1.0f16, 1.0f16}
 		};
 		[enc setFragmentBytes:&light length:sizeof(light) atIndex:0];
-
-		[enc setFragmentBytes:localplayer.eyepos
-			       length:sizeof(float) * 3
-			      atIndex:1];
 
 		[enc drawIndexedPrimitives:MTLPrimitiveTypeTriangle
 				indexCount:36
