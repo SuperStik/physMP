@@ -34,9 +34,9 @@ struct model {
 
 struct lightdata {
 	float position[3];
-	float ambient[3];
-	float diffuse[3];
-	float specular[3];
+	_Float16 ambient[3];
+	_Float16 diffuse[3];
+	_Float16 specular[3];
 };
 
 extern char done;
@@ -319,9 +319,9 @@ static void *render(void *l) {
 
 		const struct lightdata light = {
 			{0.0f, 0.0f, 0.0f},
-			{0.2f, 0.2f, 0.2f},
-			{0.5f, 0.5f, 0.5f},
-			{1.0f, 1.0f, 1.0f}
+			{0.2f16, 0.2f16, 0.2f16},
+			{0.5f16, 0.5f16, 0.5f16},
+			{1.0f16, 1.0f16, 1.0f16}
 		};
 		[enc setFragmentBytes:&light length:sizeof(light) atIndex:0];
 

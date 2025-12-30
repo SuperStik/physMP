@@ -77,7 +77,7 @@ struct shaders *shdr_load(struct shaders *shdr, id device) {
 	attr.bufferIndex = 15;
 
 	attr = attrs[1];
-	attr.format = MTLVertexFormatFloat3;
+	attr.format = MTLVertexFormatHalf3;
 	attr.offset = offsetof(struct object_vertdata, normal);
 	attr.bufferIndex = 15;
 

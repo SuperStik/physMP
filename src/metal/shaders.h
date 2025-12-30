@@ -10,7 +10,7 @@ struct shaders {
 
 struct object_vertdata {
 	float pos[3];
-	float normal[3];
+	_Float16 normal[3];
 };
 
 struct shaders *shdr_load(struct shaders *, id device);
