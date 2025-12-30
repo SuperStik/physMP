@@ -52,10 +52,10 @@ half4 fragObject(fragdata frag [[stage_in]], constant lightdata *light
 
 	half3 albedo = half3(0.2h, 1.0h, 0.3h);
 
-	half3 ambient = half3(light->ambient * albedo);
+	half3 ambient = light->ambient * albedo;
 
 	half diff = max(dot(frag.normal, lightdir), 0.0h);
-	half3 diffuse = diff * half3(light->diffuse) * albedo;
+	half3 diffuse = diff * light->diffuse * albedo;
 
 	half spec = pow(max(dot(viewdir, reflectdir), 0.0h), 16.0h);
 	half3 specular = spec * light->specular;
