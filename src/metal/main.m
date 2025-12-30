@@ -398,5 +398,5 @@ static bool windowresize(void *udata, SDL_Event *event) {
 			break;
 	}
 
-	return true;
+	return false;
 }
