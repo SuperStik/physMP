@@ -107,7 +107,7 @@ void MTL_main(void) {
 		err(1, "Failed to get device!");
 
 	layer.device = device;
-	layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+	layer.pixelFormat = MTLPixelFormatBGR10A2Unorm;
 
 	/* just to make sure Cocoa is in multithreaded mode */
 	if (__builtin_expect(![NSThread isMultiThreaded], false)) {

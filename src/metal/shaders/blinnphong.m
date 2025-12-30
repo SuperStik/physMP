@@ -23,7 +23,7 @@ id shdr_blinnphong_new(id d, id l, void *p, void *v) {
 	[vertblinnphong release];
 	desc.fragmentFunction = fragblinnphong;
 	[fragblinnphong release];
-	desc.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
+	desc.colorAttachments[0].pixelFormat = MTLPixelFormatBGR10A2Unorm;
 	desc.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
 
 	bufs = desc.vertexBuffers;

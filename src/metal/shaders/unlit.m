@@ -20,7 +20,7 @@ id shdr_unlit_new(id d, id l, void *p, void *v) {
 	[vertunlit release];
 	desc.fragmentFunction = fragunlit;
 	[fragunlit release];
-	desc.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
+	desc.colorAttachments[0].pixelFormat = MTLPixelFormatBGR10A2Unorm;
 	desc.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
 
 	bufs = desc.vertexBuffers;
