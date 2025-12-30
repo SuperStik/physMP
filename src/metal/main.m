@@ -140,7 +140,8 @@ void MTL_main(void) {
 				ev_key_up(window, &ev.key);
 				break;
 			case SDL_EVENT_MOUSE_MOTION:
-				player_turn(&localplayer, ev.motion.xrel, ev.motion.yrel);
+				player_turn(&localplayer, ev.motion.xrel,
+						ev.motion.yrel);
 				break;
 			case SDL_EVENT_QUIT:
 				done = 1;
