@@ -16,7 +16,6 @@
 #include "../math/vector.h"
 #include "../shared.h"
 #include "main.h"
-#include "objc_macros.h"
 #include "shaders.h"
 
 #define WIDTH 640
@@ -77,23 +76,24 @@ void MTL_main(void) {
 
 	id<MTLDevice> device = nil;
 
-	ARP_PUSH();
-	NSProcessInfo *pinfo = NSProcessInfo.processInfo;
-	bool lowpower = pinfo.lowPowerModeEnabled;
+	@autoreleasepool {
+		NSProcessInfo *pinfo = NSProcessInfo.processInfo;
+		bool lowpower = pinfo.lowPowerModeEnabled;
 
-	NSArray<id<MTLDevice>> *devices = MTLCopyAllDevices();
-	NSEnumerator<id<MTLDevice>> *devenum = [devices objectEnumerator];
-	id<MTLDevice> curdevice = nil;
-	while(curdevice = [devenum nextObject]) {
-		if (curdevice.lowPower == lowpower) {
-			device = curdevice;
-			[device retain];
-			break;
+		NSArray<id<MTLDevice>> *devices = MTLCopyAllDevices();
+		NSEnumerator<id<MTLDevice>> *devenum = [devices
+			objectEnumerator];
+		id<MTLDevice> curdevice = nil;
+		while(curdevice = [devenum nextObject]) {
+			if (curdevice.lowPower == lowpower) {
+				device = curdevice;
+				[device retain];
+				break;
+			}
 		}
-	}
 
-	[devices release];
-	ARP_POP();
+		[devices release];
+	}
 
 	if (device == nil) {
 		device = layer.preferredDevice;
@@ -282,72 +282,74 @@ static void *render(void *l) {
 			pthread_mutex_unlock(&occlmut);
 		}
 
-		ARP_PUSH();
+		@autoreleasepool {
+			id<CAMetalDrawable> drawable = [layer nextDrawable];
+			color.texture = drawable.texture;
 
-		id<CAMetalDrawable> drawable = [layer nextDrawable];
-		color.texture = drawable.texture;
+			if (__builtin_expect(depth.texture != depthtex, 0)) {
+				pthread_mutex_lock(&depthmut);
+				depth.texture = depthtex;
+				pthread_mutex_unlock(&depthmut);
+			}
 
-		if (__builtin_expect(depth.texture != depthtex, 0)) {
-			pthread_mutex_lock(&depthmut);
-			depth.texture = depthtex;
-			pthread_mutex_unlock(&depthmut);
+			id<MTLCommandBuffer> cmdb = [cmdq commandBuffer];
+
+			id<MTLRenderCommandEncoder> enc = [cmdb
+				renderCommandEncoderWithDescriptor:rpd];
+
+			[enc setCullMode:MTLCullModeBack];
+
+			[enc setDepthStencilState:d_state];
+
+			[enc setVertexBytes:&matrices
+				     length:sizeof(matrices)
+				    atIndex:0];
+
+			[enc setRenderPipelineState:shdr.blinnphong];
+
+			struct model model;
+			memcpy(model.model, modelobj, sizeof(float) * 16);
+			gvec(float,4) modelinv[4];
+			mat_inverse_t(model.model, modelinv);
+			memcpy(model.normal, modelinv, sizeof(float) * 12);
+			model.viewpos[0] = localplayer.eyepos[0];
+			model.viewpos[1] = localplayer.eyepos[1];
+			model.viewpos[2] = localplayer.eyepos[2];
+			[enc setVertexBytes:&model
+				     length:sizeof(model)
+				    atIndex:1];
+			[enc setVertexBuffer:buf_cube offset:0 atIndex:15];
+
+			const struct lightdata light = {
+				{0.0f, 0.0f, 0.0f},
+				{0.2f16, 0.2f16, 0.2f16},
+				{0.5f16, 0.5f16, 0.5f16},
+				{1.0f16, 1.0f16, 1.0f16}
+			};
+			[enc setFragmentBytes:&light
+				       length:sizeof(light)
+				      atIndex:0];
+
+			[enc drawIndexedPrimitives:MTLPrimitiveTypeTriangle
+					indexCount:36
+					 indexType:MTLIndexTypeUInt16
+				       indexBuffer:buf_cubeind
+				 indexBufferOffset:0];
+
+			[enc setRenderPipelineState:shdr.unlit];
+			[enc setVertexBytes:verts
+				     length:sizeof(verts)
+				    atIndex:15];
+
+			[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip
+				vertexStart:0
+				vertexCount:4];
+
+			[enc endEncoding];
+
+			[cmdb presentDrawable:drawable];
+			[cmdb commit];
 		}
-
-		id<MTLCommandBuffer> cmdb = [cmdq commandBuffer];
-
-		id<MTLRenderCommandEncoder> enc = [cmdb
-			renderCommandEncoderWithDescriptor:rpd];
-
-		[enc setCullMode:MTLCullModeBack];
-
-		[enc setDepthStencilState:d_state];
-
-		[enc setVertexBytes:&matrices
-			     length:sizeof(matrices)
-			    atIndex:0];
-
-		[enc setRenderPipelineState:shdr.blinnphong];
-
-		struct model model;
-		memcpy(model.model, modelobj, sizeof(float) * 16);
-		gvec(float,4) modelinv[4];
-		mat_inverse_t(model.model, modelinv);
-		memcpy(model.normal, modelinv, sizeof(float) * 12);
-		model.viewpos[0] = localplayer.eyepos[0];
-		model.viewpos[1] = localplayer.eyepos[1];
-		model.viewpos[2] = localplayer.eyepos[2];
-		[enc setVertexBytes:&model
-			     length:sizeof(model)
-			    atIndex:1];
-		[enc setVertexBuffer:buf_cube offset:0 atIndex:15];
-
-		const struct lightdata light = {
-			{0.0f, 0.0f, 0.0f},
-			{0.2f16, 0.2f16, 0.2f16},
-			{0.5f16, 0.5f16, 0.5f16},
-			{1.0f16, 1.0f16, 1.0f16}
-		};
-		[enc setFragmentBytes:&light length:sizeof(light) atIndex:0];
-
-		[enc drawIndexedPrimitives:MTLPrimitiveTypeTriangle
-				indexCount:36
-				 indexType:MTLIndexTypeUInt16
-			       indexBuffer:buf_cubeind
-			 indexBufferOffset:0];
-
-		[enc setRenderPipelineState:shdr.unlit];
-		[enc setVertexBytes:verts length:sizeof(verts) atIndex:15];
-
-		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip
-			vertexStart:0
-			vertexCount:4];
-
-		[enc endEncoding];
-
-		[cmdb presentDrawable:drawable];
-		[cmdb commit];
-
-		ARP_POP();
 	}
 
 	shdr_release(&shdr);
@@ -364,22 +366,21 @@ static void rebuildprojs(struct matrices *mats, float w, float h) {
 }
 
 static void rebuilddepth(id<MTLDevice> device, int32_t width, int32_t height) {
-	ARP_PUSH();
+	const MTLPixelFormat depthformat = MTLPixelFormatDepth32Float;
+	@autoreleasepool {
+		MTLTextureDescriptor *depthdesc = [MTLTextureDescriptor
+			texture2DDescriptorWithPixelFormat:depthformat
+						     width:width
+						    height:height
+						 mipmapped:false];
+		depthdesc.storageMode = MTLStorageModePrivate;
+		depthdesc.usage = MTLTextureUsageRenderTarget;
 
-	MTLTextureDescriptor *depthdesc =[MTLTextureDescriptor
-		texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float
-					     width:width
-					    height:height
-					 mipmapped:false];
-	depthdesc.storageMode = MTLStorageModePrivate;
-	depthdesc.usage = MTLTextureUsageRenderTarget;
-
-	pthread_mutex_lock(&depthmut);
-	[depthtex release];
-	depthtex = [device newTextureWithDescriptor:depthdesc];
-	pthread_mutex_unlock(&depthmut);
-
-	ARP_POP();
+		pthread_mutex_lock(&depthmut);
+		[depthtex release];
+		depthtex = [device newTextureWithDescriptor:depthdesc];
+		pthread_mutex_unlock(&depthmut);
+	}
 
 	depthtex.label = @"depth.texture";
 }
