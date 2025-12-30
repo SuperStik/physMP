@@ -4,8 +4,8 @@
 #include <objc/objc.h>
 
 struct shaders {
-	id level;
-	id object;
+	id blinnphong;
+	id unlit;
 };
 
 struct object_vertdata {

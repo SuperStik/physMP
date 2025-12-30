@@ -306,7 +306,7 @@ static void *render(void *l) {
 			     length:sizeof(matrices)
 			    atIndex:0];
 
-		[enc setRenderPipelineState:shdr.object];
+		[enc setRenderPipelineState:shdr.blinnphong];
 
 		struct model model;
 		memcpy(model.model, modelobj, sizeof(float) * 16);
@@ -335,7 +335,7 @@ static void *render(void *l) {
 			       indexBuffer:buf_cubeind
 			 indexBufferOffset:0];
 
-		[enc setRenderPipelineState:shdr.level];
+		[enc setRenderPipelineState:shdr.unlit];
 		[enc setVertexBytes:verts length:sizeof(verts) atIndex:15];
 
 		[enc drawPrimitives:MTLPrimitiveTypeTriangleStrip

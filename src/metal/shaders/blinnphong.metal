@@ -33,8 +33,8 @@ struct fragdata {
 };
 
 vertex
-fragdata vertObject(constant matrixdata *mats [[buffer(0)]], constant model *m
-		[[buffer(1)]], vertdata vert [[stage_in]]) {
+fragdata vertBlinnPhong(constant matrixdata *mats [[buffer(0)]], constant
+		model *m [[buffer(1)]], vertdata vert [[stage_in]]) {
 	model mdl = *m;
 
 	float4 pos = mdl.model * float4(vert.pos, 1.0f);
@@ -47,7 +47,7 @@ fragdata vertObject(constant matrixdata *mats [[buffer(0)]], constant model *m
 
 [[early_fragment_tests]]
 fragment
-half4 fragObject(fragdata frag [[stage_in]], constant lightdata *light
+half4 fragBlinnPhong(fragdata frag [[stage_in]], constant lightdata *light
 		[[buffer(0)]], constant packed_float3 *viewpos [[buffer(1)]]) {
 	half3 lightdir = normalize(half3(light->position - frag.fragpos));
 	half3 viewdir = half3(normalize(frag.viewpos - frag.fragpos));
