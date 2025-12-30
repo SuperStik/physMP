@@ -9,14 +9,14 @@ struct shaders *shdr_load(struct shaders *shdr, id device) {
 	id<MTLLibrary> lib = [device newDefaultLibrary];
 	assert(lib != nil);
 
-	id<MTLFunction> vertunlit = [lib newFunctionWithName:@"vertUnlit"];
-	id<MTLFunction> fragunlit = [lib newFunctionWithName:@"fragUnlit"];
-
 	id<MTLFunction> vertblinnphong = [lib
 		newFunctionWithName:@"vertBlinnPhong"];
 	id<MTLFunction> fragblinnphong = [lib
 		newFunctionWithName:@"fragBlinnPhong"];
-	
+
+	id<MTLFunction> vertunlit = [lib newFunctionWithName:@"vertUnlit"];
+	id<MTLFunction> fragunlit = [lib newFunctionWithName:@"fragUnlit"];
+
 	[lib release];
 
 	ARP_PUSH();
