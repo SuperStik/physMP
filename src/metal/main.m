@@ -208,7 +208,7 @@ static void *render(void *l) {
 	normal_shadow.storeAction = MTLStoreActionStore;
 	normal_shadow.clearColor = MTLClearColorMake(0.5, 0.5, 1.0, 1.0);
 
-	MTLRenderPassDepthAttachmentDescriptor *depth = scrrpd.depthAttachment;
+	MTLRenderPassDepthAttachmentDescriptor *depth = geomrpd.depthAttachment;
 	depth.loadAction = MTLLoadActionClear;
 	depth.storeAction = MTLStoreActionDontCare;
 
