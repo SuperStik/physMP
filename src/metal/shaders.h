@@ -5,6 +5,7 @@
 
 struct shaders {
 	id blinnphong;
+	id screen;
 	id unlit;
 };
 
