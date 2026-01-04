@@ -46,8 +46,7 @@ static struct matrices matrices = {MAT_IDENTITY_INITIALIZER,
 
 static pthread_mutex_t depthmut = PTHREAD_MUTEX_INITIALIZER;
 static id<MTLTexture> depthtex;
-static id<MTLTexture> g_albedo_specular;
-static id<MTLTexture> g_normal_shadow;
+static id<MTLTexture> geometrybuf;
 
 static pthread_mutex_t occlmut = PTHREAD_MUTEX_INITIALIZER;
 static char occluded = 0;
@@ -169,8 +168,7 @@ void MTL_main(void) {
 	pthread_join(rthread, NULL);
 
 	[depthtex release];
-	[g_albedo_specular release];
-	[g_normal_shadow release];
+	[geometrybuf release];
 	[device release];
 
 	SDL_Metal_DestroyView(view);
@@ -383,19 +381,20 @@ static void rebuilddepth(id<MTLDevice> device, int32_t width, int32_t height) {
 
 		pthread_mutex_lock(&depthmut);
 		[depthtex release];
-		[g_albedo_specular release];
-		[g_normal_shadow release];
+		[geometrybuf release];
 
 		depthtex = [device newTextureWithDescriptor:desc];
+		desc.textureType = MTLTextureType2DArray;
 		desc.pixelFormat = MTLPixelFormatBGRA8Unorm;
-		g_albedo_specular = [device newTextureWithDescriptor:desc];
-		g_normal_shadow = [device newTextureWithDescriptor:desc];
+		desc.arrayLength = 2;
+		desc.usage = MTLTextureUsageShaderRead |
+			MTLTextureUsageRenderTarget;
+		geometrybuf = [device newTextureWithDescriptor:desc];
 		pthread_mutex_unlock(&depthmut);
 	}
 
 	depthtex.label = @"framebuffer.depth";
-	g_albedo_specular.label = @"framebuffer.albedo-specular";
-	g_normal_shadow.label = @"framebuffer.normal-shadow";
+	geometrybuf.label = @"framebuffer.geometrybuffer";
 }
 
 static bool windowresize(void *udata, SDL_Event *event) {
