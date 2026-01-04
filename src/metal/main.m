@@ -183,15 +183,32 @@ static void *render(void *l) {
 
 	pthread_setname_np("physMP.render-thread.Metal");
 
-	MTLRenderPassDescriptor *rpd = [MTLRenderPassDescriptor
+	MTLRenderPassDescriptor *scrrpd = [MTLRenderPassDescriptor
 		renderPassDescriptor];
 
-	MTLRenderPassColorAttachmentDescriptor *color = rpd.colorAttachments[0];
+	MTLRenderPassColorAttachmentDescriptor *color =
+		scrrpd.colorAttachments[0];
 	color.loadAction = MTLLoadActionClear;
 	color.storeAction = MTLStoreActionDontCare;
 	color.clearColor = MTLClearColorMake(0.5, 0.4, 0.1, 1.0);
 
-	MTLRenderPassDepthAttachmentDescriptor *depth = rpd.depthAttachment;
+	MTLRenderPassDescriptor *geomrpd = [MTLRenderPassDescriptor
+		renderPassDescriptor];
+	MTLRenderPassColorAttachmentDescriptorArray *geombufs =
+		geomrpd.colorAttachments;
+
+	MTLRenderPassColorAttachmentDescriptor *albedo_specular = geombufs[0];
+	albedo_specular.loadAction = MTLLoadActionClear;
+	albedo_specular.storeAction = MTLStoreActionStore;
+	albedo_specular.clearColor = MTLClearColorMake(0.5, 0.4, 0.1, 1.0);
+
+	MTLRenderPassColorAttachmentDescriptor *normal_shadow = geombufs[1];
+	normal_shadow.slice = 1;
+	normal_shadow.loadAction = MTLLoadActionClear;
+	normal_shadow.storeAction = MTLStoreActionStore;
+	normal_shadow.clearColor = MTLClearColorMake(0.5, 0.5, 1.0, 1.0);
+
+	MTLRenderPassDepthAttachmentDescriptor *depth = scrrpd.depthAttachment;
 	depth.loadAction = MTLLoadActionClear;
 	depth.storeAction = MTLStoreActionDontCare;
 
@@ -298,7 +315,7 @@ static void *render(void *l) {
 			id<MTLCommandBuffer> cmdb = [cmdq commandBuffer];
 
 			id<MTLRenderCommandEncoder> enc = [cmdb
-				renderCommandEncoderWithDescriptor:rpd];
+				renderCommandEncoderWithDescriptor:scrrpd];
 
 			[enc setCullMode:MTLCullModeBack];
 
