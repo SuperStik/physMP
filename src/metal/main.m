@@ -301,6 +301,8 @@ static void *render(void *l) {
 						    options:opts];
 	buf_cube.label = @"buffer.cube.vertex_attributes";
 
+	id<MTLFence> deferfence = [device newFence];
+
 	while (!done) {
 		/* pause render thread if window is occluded */
 		if (__builtin_expect(occluded, 0)) {
@@ -324,12 +326,17 @@ static void *render(void *l) {
 
 			id<MTLRenderCommandEncoder> scr = [cmdb
 				renderCommandEncoderWithDescriptor:scrrpd];
+			[scr setRenderPipelineState:shdr.screen];
 
 			[scr setVertexBytes:screenrect
 				     length:sizeof(screenrect)
 				    atIndex:15];
 
-			[scr setRenderPipelineState:shdr.screen];
+			[scr waitForFence:deferfence
+			     beforeStages:MTLRenderStageFragment];
+
+			[scr setFragmentTexture:albedo_specular.texture
+					atIndex:0];
 
 			[scr drawPrimitives:MTLPrimitiveTypeTriangleStrip
 				vertexStart:0
@@ -339,6 +346,9 @@ static void *render(void *l) {
 
 			id<MTLRenderCommandEncoder> enc = [cmdb
 				renderCommandEncoderWithDescriptor:geomrpd];
+
+			[enc updateFence:deferfence
+			     afterStages:MTLRenderStageFragment];
 
 			[enc setCullMode:MTLCullModeBack];
 
@@ -397,6 +407,7 @@ static void *render(void *l) {
 
 	shdr_release(&shdr);
 	[d_state release];
+	[deferfence release];
 	[buf_cube release];
 	[buf_cubeind release];
 	[cmdq release];
