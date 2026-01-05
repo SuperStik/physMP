@@ -311,18 +311,10 @@ static void *render(void *l) {
 		}
 
 		@autoreleasepool {
+			id<MTLCommandBuffer> cmdb = [cmdq commandBuffer];
+
 			id<CAMetalDrawable> drawable = [layer nextDrawable];
 			color.texture = drawable.texture;
-
-			if (__builtin_expect(depth.texture != depthtex, 0)) {
-				pthread_mutex_lock(&depthmut);
-				depth.texture = depthtex;
-				albedo_specular.texture = geometrybuf;
-				normal_shadow.texture = geometrybuf;
-				pthread_mutex_unlock(&depthmut);
-			}
-
-			id<MTLCommandBuffer> cmdb = [cmdq commandBuffer];
 
 			id<MTLRenderCommandEncoder> scr = [cmdb
 				renderCommandEncoderWithDescriptor:scrrpd];
@@ -343,6 +335,14 @@ static void *render(void *l) {
 				vertexCount:4];
 
 			[scr endEncoding];
+
+			if (__builtin_expect(depth.texture != depthtex, 0)) {
+				pthread_mutex_lock(&depthmut);
+				depth.texture = depthtex;
+				albedo_specular.texture = geometrybuf;
+				normal_shadow.texture = geometrybuf;
+				pthread_mutex_unlock(&depthmut);
+			}
 
 			id<MTLRenderCommandEncoder> enc = [cmdb
 				renderCommandEncoderWithDescriptor:geomrpd];
