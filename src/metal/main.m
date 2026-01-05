@@ -222,11 +222,11 @@ static void *render(void *l) {
 	struct shaders shdr;
 	shdr_load(&shdr, device);
 
-	const int16_t screenrect[] = {
-		32767, 32767,
-		32767, -32767,
-		-32767, 32767,
-		-32767, -32767
+	const _Float16 screenrect[] = {
+		1.0f16, 1.0f16,
+		1.0f16, -1.0f16,
+		-1.0f16, 1.0f16,
+		-1.0f16, -1.0f16
 	};
 
 	const float verts[] = {
