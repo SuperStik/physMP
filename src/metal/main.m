@@ -188,9 +188,8 @@ static void *render(void *l) {
 
 	MTLRenderPassColorAttachmentDescriptor *color =
 		scrrpd.colorAttachments[0];
-	color.loadAction = MTLLoadActionClear;
+	/*color.loadAction = MTLLoadActionDontCare;*/
 	color.storeAction = MTLStoreActionDontCare;
-	color.clearColor = MTLClearColorMake(0.5, 0.4, 0.1, 1.0);
 
 	MTLRenderPassDescriptor *geomrpd = [MTLRenderPassDescriptor
 		renderPassDescriptor];
@@ -222,6 +221,13 @@ static void *render(void *l) {
 
 	struct shaders shdr;
 	shdr_load(&shdr, device);
+
+	const int16_t screenrect[] = {
+		32767, 32767,
+		32767, -32767,
+		-32767, 32767,
+		-32767, -32767
+	};
 
 	const float verts[] = {
 		128.0f, -4.0f, 128.0f,
@@ -309,13 +315,30 @@ static void *render(void *l) {
 			if (__builtin_expect(depth.texture != depthtex, 0)) {
 				pthread_mutex_lock(&depthmut);
 				depth.texture = depthtex;
+				albedo_specular.texture = geometrybuf;
+				normal_shadow.texture = geometrybuf;
 				pthread_mutex_unlock(&depthmut);
 			}
 
 			id<MTLCommandBuffer> cmdb = [cmdq commandBuffer];
 
-			id<MTLRenderCommandEncoder> enc = [cmdb
+			id<MTLRenderCommandEncoder> scr = [cmdb
 				renderCommandEncoderWithDescriptor:scrrpd];
+
+			[scr setVertexBytes:screenrect
+				     length:sizeof(screenrect)
+				    atIndex:15];
+
+			[scr setRenderPipelineState:shdr.screen];
+
+			[scr drawPrimitives:MTLPrimitiveTypeTriangleStrip
+				vertexStart:0
+				vertexCount:4];
+
+			[scr endEncoding];
+
+			id<MTLRenderCommandEncoder> enc = [cmdb
+				renderCommandEncoderWithDescriptor:geomrpd];
 
 			[enc setCullMode:MTLCullModeBack];
 

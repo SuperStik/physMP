@@ -23,11 +23,12 @@ id shdr_screen_new(id d, id l, void *p, void *v) {
 	desc.vertexBuffers[15].mutability = MTLMutabilityImmutable;
 
 	attr = vertdesc.attributes[0];
-	attr.format = MTLVertexFormatChar2Normalized;
+	attr.format = MTLVertexFormatShort2Normalized;
 	attr.offset = 0;
 	attr.bufferIndex = 15;
 
-	vertdesc.layouts[15].stride = sizeof(char) * 2;
+	/* stride has to be a multiple of 4 */
+	vertdesc.layouts[15].stride = sizeof(short) * 2;
 
 	desc.vertexDescriptor = vertdesc;
 
