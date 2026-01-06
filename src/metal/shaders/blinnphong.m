@@ -3,7 +3,8 @@
 #include "../shaders.h"
 #include "blinnphong.h"
 
-id shdr_blinnphong_new(id d, id l, void *p, void *v) {
+void shdr_blinnphong_new(id *pipe, dispatch_group_t group, id d, id l, void *p,
+		void *v) {
 	id<MTLDevice> device = d;
 	id<MTLLibrary> lib = l;
 	MTLRenderPipelineDescriptor *desc = p;
@@ -52,5 +53,13 @@ id shdr_blinnphong_new(id d, id l, void *p, void *v) {
 
 	desc.vertexDescriptor = vertdesc;
 
-	return [device newRenderPipelineStateWithDescriptor:desc error:nil];
+	dispatch_group_enter(group);
+	[device newRenderPipelineStateWithDescriptor:desc
+				   completionHandler:^(
+						   id<MTLRenderPipelineState>
+						   state, NSError *e) {
+					   *pipe = state;
+					   [state retain];
+					   dispatch_group_leave(group);
+				   }];
 }

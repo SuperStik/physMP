@@ -8,8 +8,7 @@
 #include "shaders/unlit.h"
 
 struct shaders *shdr_load(struct shaders *shdr, id device) {
-	id<MTLLibrary> lib = [device newDefaultLibrary];
-	assert(lib != nil);
+	dispatch_group_t group = dispatch_group_create();
 
 	@autoreleasepool {
 		MTLRenderPipelineDescriptor *desc = [
@@ -17,23 +16,31 @@ struct shaders *shdr_load(struct shaders *shdr, id device) {
 		MTLVertexDescriptor *vertdesc = [MTLVertexDescriptor
 			vertexDescriptor];
 
-		shdr->blinnphong = shdr_blinnphong_new(device, lib, desc,
+		id<MTLLibrary> lib = [device newDefaultLibrary];
+		assert(lib != nil);
+
+		shdr_blinnphong_new(&shdr->blinnphong, group, device, lib, desc,
 				vertdesc);
 
 		[desc reset];
 		[vertdesc reset];
 
-		shdr->screen = shdr_screen_new(device, lib, desc, vertdesc);
+		shdr_screen_new(&shdr->screen, group, device, lib, desc,
+				vertdesc);
 
 		[desc reset];
 		[vertdesc reset];
 
-		shdr->unlit = shdr_unlit_new(device, lib, desc, vertdesc);
+		shdr_unlit_new(&(shdr->unlit), group, device, lib, desc,
+				vertdesc);
 
 		[desc release];
+
+		[lib release];
 	}
 
-	[lib release];
+	dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
+	dispatch_release(group);
 
 	return shdr;
 }
