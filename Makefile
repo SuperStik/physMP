@@ -68,10 +68,12 @@ OUT := ${OUT_DIR}/${EXE}
 O ?= 2
 
 override CCFLAGS += -flto -funsafe-math-optimizations -fno-math-errno -fvisibility=hidden
+override LDFLAGS += -flto
+
 all: ${OBJ_DIRS} ${OUT} ${SHDR_OUT} ${RES_OUT}
 
 ${OUT}: ${OBJ_C} ${OBJ_M} ${OBJ_CXX}
-	${CXX} $^ -O$O -o $@ ${LIB_PATH_FL} ${LIB_FL} ${FRAMEWORK_FL} ${CCFLAGS}
+	${CXX} $^ -O$O -o $@ ${LIB_PATH_FL} ${LIB_FL} ${FRAMEWORK_FL} ${LDFLAGS}
 
 ${OBJ_DIR}/%.c.o: ${SRC_DIR}/%.c ${OBJ_DIRS}
 	${CC} $< -O$O -o $@ -c ${INCL_PATH_FL} ${CCFLAGS}
