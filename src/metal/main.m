@@ -41,8 +41,8 @@ struct lightdata {
 
 extern char done;
 
-static struct matrices matrices = {MAT_IDENTITY_INITIALIZER,
-	MAT_IDENTITY_INITIALIZER};
+static struct matrices matrices = {MTX_IDENTITY_INITIALIZER,
+	MTX_IDENTITY_INITIALIZER};
 
 static pthread_mutex_t depthmut = PTHREAD_MUTEX_INITIALIZER;
 static id<MTLTexture> depthtex;
@@ -363,7 +363,7 @@ static void *render(void *l) {
 			struct model model;
 			memcpy(model.model, modelobj, sizeof(float) * 16);
 			gvec(float,4) modelinv[4];
-			mat_inverse_t(model.model, modelinv);
+			mtx_inverse_t(model.model, modelinv);
 			memcpy(model.normal, modelinv, sizeof(float) * 12);
 			model.viewpos[0] = localplayer.eyepos[0];
 			model.viewpos[1] = localplayer.eyepos[1];

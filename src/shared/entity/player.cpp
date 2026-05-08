@@ -113,9 +113,9 @@ static void updatetransform(struct player *ply) {
 	transform.jph.SetTranslation(-transform.jph.GetTranslation());
 
 	gvec(float,4) rotate[4];
-	mat_getrotate(rotate, rot);
+	mtx_getrotate(rotate, rot);
 
 	gvec(float,4) *viewtransform = ply->transform;
 	if (__builtin_expect(viewtransform != nullptr, 1))
-		mat_mul(transform.vec, rotate, viewtransform);
+		mtx_mul(transform.vec, rotate, viewtransform);
 }
