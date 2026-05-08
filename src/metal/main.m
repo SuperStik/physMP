@@ -10,11 +10,11 @@
 #import <Metal/Metal.h>
 
 #include <events.h>
-#include <gutl.h>
 #include "main.h"
 #include <math/angle.h>
 #include <math/matrix.h>
 #include <math/vector.h>
+#include <projection.h>
 #include "shaders.h"
 #include <shared.h>
 
@@ -416,7 +416,7 @@ static void *render(void *l) {
 }
 
 static void rebuildprojs(struct matrices *mats, float w, float h) {
-	GUTL_perspectivef((float *)&(mats->persp), 90.0f, w / h, 0.1f, 256.0f);
+	proj_perspective((float *)&(mats->persp), 90.0f, w / h, 0.1f, 256.0f);
 }
 
 static void rebuilddepth(id<MTLDevice> device, int32_t width, int32_t height) {
