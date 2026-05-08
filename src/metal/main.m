@@ -9,14 +9,14 @@
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 
-#include "../events.h"
-#include "../gutl.h"
-#include "../math/angle.h"
-#include "../math/matrix.h"
-#include "../math/vector.h"
-#include "../shared.h"
+#include <events.h>
+#include <gutl.h>
 #include "main.h"
+#include <math/angle.h>
+#include <math/matrix.h>
+#include <math/vector.h>
 #include "shaders.h"
+#include <shared.h>
 
 #define WIDTH 640
 #define HEIGHT 480
