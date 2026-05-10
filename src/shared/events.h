@@ -8,9 +8,11 @@
 
 C_BEGIN;
 
-void ev_key_down(SDL_Window *, const SDL_KeyboardEvent *);
+void ev_key_down(const SDL_KeyboardEvent *);
 
-void ev_key_up(SDL_Window *, const SDL_KeyboardEvent *);
+void ev_key_up(const SDL_KeyboardEvent *);
+
+void ev_mouse_motion(const SDL_MouseMotionEvent *);
 
 C_END;
 

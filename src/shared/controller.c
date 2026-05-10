@@ -33,16 +33,16 @@ gvec(float,2) ctrl_getmove(struct control *ctrl) {
 	return move;
 }
 
-void ctrl_keydown(struct control *ctrl, const SDL_KeyboardEvent *key) {
-	gvec(float,2) move = scan2move(key->scancode);
+void ctrl_keydown(struct control *ctrl, SDL_Scancode scancode) {
+	gvec(float,2) move = scan2move(scancode);
 	if (move[0] == 0.0f && move[1] == 0.0f)
 		return;
 
 	movectrl(ctrl, move);
 }
 
-void ctrl_keyup(struct control *ctrl, const SDL_KeyboardEvent *key) {
-	gvec(float,2) move = scan2move(key->scancode);
+void ctrl_keyup(struct control *ctrl, const SDL_Scancode scancode) {
+	gvec(float,2) move = scan2move(scancode);
 	if (move[0] == 0.0f && move[1] == 0.0f)
 		return;
 

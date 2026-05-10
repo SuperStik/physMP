@@ -26,9 +26,9 @@ void ctrl_destroy(struct control *);
 
 gvec(float,2) ctrl_getmove(struct control *);
 
-void ctrl_keydown(struct control *, const SDL_KeyboardEvent *);
+void ctrl_keydown(struct control *, SDL_Scancode);
 
-void ctrl_keyup(struct control *, const SDL_KeyboardEvent *);
+void ctrl_keyup(struct control *, SDL_Scancode);
 
 C_END;
 

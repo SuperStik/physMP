@@ -109,14 +109,13 @@ void MTL_main(void) {
 	while (!done && SDL_WaitEvent(&ev)) {
 		switch (ev.type) {
 			case SDL_EVENT_KEY_DOWN:
-				ev_key_down(window, &ev.key);
+				ev_key_down(&ev.key);
 				break;
 			case SDL_EVENT_KEY_UP:
-				ev_key_up(window, &ev.key);
+				ev_key_up(&ev.key);
 				break;
 			case SDL_EVENT_MOUSE_MOTION:
-				player_turn(&localplayer, ev.motion.xrel,
-						ev.motion.yrel);
+				ev_mouse_motion(&ev.motion);
 				break;
 			case SDL_EVENT_QUIT:
 				done = 1;
