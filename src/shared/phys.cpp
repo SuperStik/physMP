@@ -33,7 +33,8 @@ gvec(float,4) modelobj[4];
 struct player localplayer;
 C_END;
 
-using namespace JPH::literals;
+using namespace JPH;
+using namespace literals;
 
 static void *simulate(void *physics_system);
 
@@ -44,20 +45,20 @@ static ObjVsBPLFilterImpl objbplfilter;
 static ObjLayerPairFilterImpl objlayerpairfilter;
 
 pthread_t phys_begin() {
-	JPH::RegisterDefaultAllocator();
+	RegisterDefaultAllocator();
 
-	JPH::Trace = warnx;
+	Trace = warnx;
 
-	JPH::Factory::sInstance = new JPH::Factory();
+	Factory::sInstance = new Factory();
 
-	JPH::RegisterTypes();
+	RegisterTypes();
 
 	const unsigned maxbodies = 65536;
 	const unsigned numbodymutexes = 0;
 	const unsigned maxbodypairs = 65536;
 	const unsigned maxcontactconstraints = 10240;
 
-	JPH::PhysicsSystem *physsys = new JPH::PhysicsSystem();
+	PhysicsSystem *physsys = new PhysicsSystem();
 	physsys->Init(maxbodies, numbodymutexes, maxbodypairs,
 			maxcontactconstraints, ibpl, objbplfilter,
 			objlayerpairfilter);
@@ -70,45 +71,43 @@ pthread_t phys_begin() {
 void phys_end(pthread_t thread) {
 	pthread_join(thread, NULL);
 
-	JPH::UnregisterTypes();
+	UnregisterTypes();
 
-	delete JPH::Factory::sInstance;
+	delete Factory::sInstance;
 }
 
 static void *simulate(void *p) {
-	JPH::PhysicsSystem *physsys = static_cast<JPH::PhysicsSystem *>(p);
+	PhysicsSystem *physsys = static_cast<PhysicsSystem *>(p);
 
-	JPH::BodyInterface &ibody = physsys->GetBodyInterfaceNoLock();
+	BodyInterface &ibody = physsys->GetBodyInterfaceNoLock();
 
-	JPH::BoxShapeSettings floor_shape_settings(JPH::Vec3(128.0f, 1.0f,
-				128.0f));
+	BoxShapeSettings floor_shape_settings(Vec3(128.0f, 1.0f, 128.0f));
 	floor_shape_settings.SetEmbedded();
 
-	JPH::ShapeSettings::ShapeResult floor_shape_result =
+	ShapeSettings::ShapeResult floor_shape_result =
 		floor_shape_settings.Create();
-	JPH::ShapeRefC floor_shape = floor_shape_result.Get();
+	ShapeRefC floor_shape = floor_shape_result.Get();
 
-	JPH::BodyCreationSettings floor_settings(floor_shape, JPH::RVec3(0.0_r,
-				-4.5_r, 0.0_r), JPH::Quat::sIdentity(),
-				JPH::EMotionType::Static, Layers::NON_MOVING);
+	BodyCreationSettings floor_settings(floor_shape, RVec3(0.0_r, -4.5_r,
+				0.0_r), Quat::sIdentity(), EMotionType::Static,
+			Layers::NON_MOVING);
 
-	JPH::Body *floor = ibody.CreateBody(floor_settings);
-	ibody.AddBody(floor->GetID(), JPH::EActivation::DontActivate);
+	Body *floor = ibody.CreateBody(floor_settings);
+	ibody.AddBody(floor->GetID(), EActivation::DontActivate);
 
-	JPH::BodyCreationSettings sphere_settings(new JPH::SphereShape(0.25f),
-			JPH::RVec3(0.0_r, 2.0_r, 0.0_r), JPH::Quat::sIdentity(),
-			JPH::EMotionType::Dynamic, Layers::MOVING);
-	JPH::BodyID sphere_id = ibody.CreateAndAddBody(sphere_settings,
-			JPH::EActivation::Activate);
-	ibody.SetLinearVelocity(sphere_id, JPH::Vec3(0.25f, 0.0f, 0.5f));
+	BodyCreationSettings sphere_settings(new SphereShape(0.25f),
+			RVec3(0.0_r, 2.0_r, 0.0_r), Quat::sIdentity(),
+			EMotionType::Dynamic, Layers::MOVING);
+	BodyID sphere_id = ibody.CreateAndAddBody(sphere_settings,
+			EActivation::Activate);
+	ibody.SetLinearVelocity(sphere_id, Vec3(0.25f, 0.0f, 0.5f));
 
-	JPH::TempAllocatorImpl tempalloc(10 * 1024 * 1024);
+	TempAllocatorImpl tempalloc(10 * 1024 * 1024);
 
-	JPH::JobSystemThreadPool jobsys(JPH::cMaxPhysicsJobs,
-			JPH::cMaxPhysicsBarriers,
-			JPH::thread::hardware_concurrency() - 1);
+	JobSystemThreadPool jobsys(cMaxPhysicsJobs, cMaxPhysicsBarriers,
+			thread::hardware_concurrency() - 1);
 
-	JPH::CharacterVirtual::ExtendedUpdateSettings updatesettings;
+	CharacterVirtual::ExtendedUpdateSettings updatesettings;
 
 	struct player *ply = player_create(&localplayer, physsys);
 
@@ -119,10 +118,11 @@ static void *simulate(void *p) {
 #ifdef __APPLE__
 	pthread_setname_np("physMP.physics-thread");
 #endif /* __APPLE__ */
+
 	while (!done) {
 		cl_start = SDL_GetTicksNS();
 
-		const JPH::Mat44 trans = ibody.GetWorldTransform(sphere_id);
+		const Mat44 trans = ibody.GetWorldTransform(sphere_id);
 		memcpy(modelobj, &trans, sizeof(float) * 16);
 
 		const float delta = 1.0f / 60.0f;
