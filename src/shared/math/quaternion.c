@@ -1,6 +1,6 @@
-#include "angle.h"
+#include "quaternion.h"
 
-gvec(float,4) ang_eul2quat(float p, float y, float r) {
+gvec(float,4) quat_from_eul(float p, float y, float r) {
 	/* there's some weird stuff happening here.. */
 	gvec(float,4) sins, coss;
 	gvec(float,4) vals;
@@ -60,7 +60,7 @@ gvec(float,4) ang_eul2quat(float p, float y, float r) {
 	return q;
 }
 
-gvec(float,4) ang_eulnoroll2quat(float p, float y) {
+gvec(float,4) quat_from_eulnoroll(float p, float y) {
 	gvec(float,2) sins, coss;
 	gvec(float,2) vals = {p, y};
 	vals /= 360.0f;
@@ -73,7 +73,7 @@ gvec(float,4) ang_eulnoroll2quat(float p, float y) {
 	return roll * pitch;
 }
 
-gvec(float,4) ang_axisang2quat(gvec(float,4) a) {
+gvec(float,4) quat_from_axisang(gvec(float,4) a) {
 	float sina, cosa;
 	SINCOSPIf(a[0] / 360.0f, &sina, &cosa);
 
@@ -86,7 +86,7 @@ gvec(float,4) ang_axisang2quat(gvec(float,4) a) {
 	return (gvec(float,4)){cosa, sina, sina, sina} * a;
 }
 
-gvec(float,4) ang_quat2axisang(gvec(float,4) q) {
+gvec(float,4) quat_to_axisang(gvec(float,4) q) {
 	if (q[0] != 1.0f) {
 		float ang = acosf(q[0]);
 

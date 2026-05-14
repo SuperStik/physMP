@@ -7,8 +7,8 @@
 #include <Jolt/Physics/Character/CharacterVirtual.h>
 
 #include "layers.hpp"
-#include "math/angle.h"
 #include "math/matrix.h"
+#include "math/quaternion.h"
 #include "player.h"
 
 static void updatetransform(struct player *);
@@ -103,7 +103,7 @@ static void updatetransform(struct player *ply) {
 	if (__builtin_expect(vchar == nullptr, 0))
 		return;
 
-	gvec(float,4) rot = ang_eulnoroll2quat(ply->eyeangles[0],
+	gvec(float,4) rot = quat_from_eulnoroll(ply->eyeangles[0],
 			ply->eyeangles[1]);
 	union {
 		gvec(float,4) vec[4];
